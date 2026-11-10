@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_dashboard" name="shell-type"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #F8FAFC;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="bg-[#F8FAFC] text-[#111827] antialiased">
+<!-- FIXED SIDEBAR -->
+<aside class="fixed left-0 top-0 h-full w-60 bg-white border-r border-[#E2E8F0] z-50 flex flex-col justify-between select-none">
+<div class="flex flex-col">
+<!-- Logo Header -->
+<div class="h-16 px-5 border-b border-[#E2E8F0] flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-[#FFF1F2] border border-[#FECDD3] flex items-center justify-center text-[#E56B6F]">
+<span class="material-symbols-outlined text-[20px]">shield</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-[15px] font-semibold text-[#111827] tracking-tight truncate leading-none">Raksha Kwacch</span>
+<span class="text-[12px] text-[#64748B] mt-1 truncate">Transport Admin</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col py-3 px-3 gap-1">
+<a aria-current="page" class="flex items-center gap-3 px-3 py-2 rounded-md bg-[#FFF1F2] text-[#E56B6F] font-medium text-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span>Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-[#64748B] hover:text-[#111827] hover:bg-slate-50 text-sm font-normal transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">fmd_good</span>
+<span>Live Tracking</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-[#64748B] hover:text-[#111827] hover:bg-slate-50 text-sm font-normal transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+<span>Attendance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-[#64748B] hover:text-[#111827] hover:bg-slate-50 text-sm font-normal transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+<span>Verification</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-[#64748B] hover:text-[#111827] hover:bg-slate-50 text-sm font-normal transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">directions_bus</span>
+<span>Fleet &amp; Routes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-[#64748B] hover:text-[#111827] hover:bg-slate-50 text-sm font-normal transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span>People</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-[#64748B] hover:text-[#111827] hover:bg-slate-50 text-sm font-normal transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+<span>Alerts &amp; Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-[#64748B] hover:text-[#111827] hover:bg-slate-50 text-sm font-normal transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Profile Card -->
+<div class="p-3 border-t border-[#E2E8F0]">
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-8 h-8 rounded-full bg-slate-100 border border-[#E2E8F0] flex items-center justify-center text-xs font-semibold text-[#111827] shrink-0">
+            RS
+          </div>
+<div class="flex flex-col min-w-0">
+<span class="text-xs font-semibold text-[#111827] truncate">Rajesh Sharma</span>
+<span class="text-[11px] text-[#64748B] truncate">Super Admin</span>
+</div>
+</div>
+<button class="p-1 text-[#64748B] hover:text-[#111827] rounded transition-colors" title="Switch or Logout">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- MAIN WRAPPER -->
+<div class="pl-60 min-h-screen">
+<!-- TOP HEADER -->
+<header class="sticky top-0 z-40 h-16 bg-white/95 backdrop-blur-sm border-b border-[#E2E8F0] px-8 flex items-center justify-between">
+<div>
+<h1 class="text-[20px] font-semibold text-[#111827] tracking-tight leading-tight">Overview</h1>
+<p class="text-xs text-[#64748B] mt-0.5">Monitor and manage daily transport operations.</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="hidden md:inline-block text-[13px] text-[#64748B]">Wednesday, Oct 24, 2024</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+          DEMO MODE
+        </span>
+<button class="p-1.5 text-[#64748B] hover:text-[#111827] hover:bg-slate-100 rounded-md transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-slate-100 border border-[#E2E8F0] flex items-center justify-center text-xs font-medium text-[#111827]">
+          RS
+        </div>
+</div>
+</header>
+<!-- CONTENT BODY -->
+<main class="p-8 max-w-[1440px] mx-auto space-y-6">
+<!-- SECTION 1: FOUR COMPACT KPI CARDS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Active Buses -->
+<div class="bg-white rounded-lg border border-[#E2E8F0] p-5 flex flex-col justify-between shadow-xs">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-[#64748B]">Active Buses</span>
+<span class="material-symbols-outlined text-[20px] text-[#64748B]">directions_bus</span>
+</div>
+<div class="mt-3">
+<div class="text-2xl font-semibold text-[#111827] tracking-tight">8 / 12</div>
+<p class="text-xs text-[#64748B] mt-1">Reporting GPS</p>
+</div>
+</div>
+<!-- Recorded Boardings -->
+<div class="bg-white rounded-lg border border-[#E2E8F0] p-5 flex flex-col justify-between shadow-xs">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-[#64748B]">Recorded Boardings</span>
+<span class="material-symbols-outlined text-[20px] text-[#64748B]">contactless</span>
+</div>
+<div class="mt-3">
+<div class="text-2xl font-semibold text-[#111827] tracking-tight">342</div>
+<p class="text-xs text-[#64748B] mt-1">Today</p>
+</div>
+</div>
+<!-- Flagged Events -->
+<div class="bg-white rounded-lg border border-[#E2E8F0] p-5 flex flex-col justify-between shadow-xs">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-[#64748B]">Flagged Events</span>
+<span class="material-symbols-outlined text-[20px] text-[#64748B]">flag</span>
+</div>
+<div class="mt-3">
+<div class="text-2xl font-semibold text-[#111827] tracking-tight">7</div>
+<p class="text-xs text-[#64748B] mt-1">Needs review</p>
+</div>
+</div>
+<!-- Open Alerts -->
+<div class="bg-white rounded-lg border border-[#E2E8F0] p-5 flex flex-col justify-between shadow-xs">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-[#64748B]">Open Alerts</span>
+<span class="material-symbols-outlined text-[20px] text-[#64748B]">error_outline</span>
+</div>
+<div class="mt-3">
+<div class="text-2xl font-semibold text-[#111827] tracking-tight">3</div>
+<p class="text-xs text-[#64748B] mt-1">Requires attention</p>
+</div>
+</div>
+</div>
+<!-- SECTION 2: TWO-COLUMN OPERATIONAL SECTION -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- LEFT: Fleet Status (60% -> col-span-7) -->
+<div class="lg:col-span-7 bg-white rounded-lg border border-[#E2E8F0] overflow-hidden shadow-xs">
+<div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+<h2 class="text-sm font-semibold text-[#111827]">Fleet Status</h2>
+<a class="text-xs font-medium text-[#64748B] hover:text-[#111827] transition-colors" href="#">
+              View all buses
+            </a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+<th class="py-2.5 px-5">Bus</th>
+<th class="py-2.5 px-5">Route</th>
+<th class="py-2.5 px-4">GPS Status</th>
+<th class="py-2.5 px-5 text-right">Last Update</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#E2E8F0] text-xs">
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3 px-5">
+<span class="font-medium text-[#111827]">BUS-104</span>
+<span class="block text-[11px] text-[#64748B]">Ashok Leyland</span>
+</td>
+<td class="py-3 px-5">
+<span class="text-[#111827] font-medium">RT-04</span>
+<span class="block text-[11px] text-[#64748B]">North Campus</span>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0]">
+                      Live
+                    </span>
+</td>
+<td class="py-3 px-5 text-right text-[#64748B] font-normal">
+                    12s ago
+                  </td>
+</tr>
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3 px-5">
+<span class="font-medium text-[#111827]">BUS-109</span>
+<span class="block text-[11px] text-[#64748B]">Tata Starbus</span>
+</td>
+<td class="py-3 px-5">
+<span class="text-[#111827] font-medium">RT-11</span>
+<span class="block text-[11px] text-[#64748B]">Dwarka Express</span>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0]">
+                      Live
+                    </span>
+</td>
+<td class="py-3 px-5 text-right text-[#64748B] font-normal">
+                    34s ago
+                  </td>
+</tr>
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3 px-5">
+<span class="font-medium text-[#111827]">BUS-115</span>
+<span class="block text-[11px] text-[#64748B]">Eicher Skyline</span>
+</td>
+<td class="py-3 px-5">
+<span class="text-[#111827] font-medium">RT-02</span>
+<span class="block text-[11px] text-[#64748B]">South Ext. Loop</span>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                      Stale
+                    </span>
+</td>
+<td class="py-3 px-5 text-right text-[#64748B] font-normal">
+                    14m ago
+                  </td>
+</tr>
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3 px-5">
+<span class="font-medium text-[#111827]">BUS-102</span>
+<span class="block text-[11px] text-[#64748B]">Force Traveller</span>
+</td>
+<td class="py-3 px-5">
+<span class="text-[#111827] font-medium">RT-08</span>
+<span class="block text-[11px] text-[#64748B]">Noida Corridor</span>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]">
+                      Unavailable
+                    </span>
+</td>
+<td class="py-3 px-5 text-right text-[#64748B] font-normal">
+                    1h 45m ago
+                  </td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- RIGHT: Needs Attention (40% -> col-span-5) -->
+<div class="lg:col-span-5 bg-white rounded-lg border border-[#E2E8F0] overflow-hidden shadow-xs">
+<div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<h2 class="text-sm font-semibold text-[#111827]">Needs Attention</h2>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-[#64748B]">
+                3
+              </span>
+</div>
+<a class="text-xs font-medium text-[#64748B] hover:text-[#111827] transition-colors" href="#">
+              View all
+            </a>
+</div>
+<div class="divide-y divide-[#E2E8F0]">
+<!-- Item 1 -->
+<div class="p-4 hover:bg-slate-50/50 transition-colors">
+<div class="flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#D97706]">priority_high</span>
+<span class="text-xs font-semibold text-[#111827]">RFID verification flagged</span>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                  High
+                </span>
+</div>
+<p class="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                Student #RK-8842 scanned on BUS-104 (scheduled Route 07)
+              </p>
+<div class="mt-2 flex items-center justify-between text-[11px] text-[#64748B]">
+<span>8:14 AM</span>
+<a class="font-medium text-[#E56B6F] hover:underline" href="#">Review</a>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-4 hover:bg-slate-50/50 transition-colors">
+<div class="flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#DC2626]">location_off</span>
+<span class="text-xs font-semibold text-[#111827]">Bus GPS unavailable</span>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]">
+                  Critical
+                </span>
+</div>
+<p class="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                BUS-102 GNSS signal lost near Sector 62. Caching locally.
+              </p>
+<div class="mt-2 flex items-center justify-between text-[11px] text-[#64748B]">
+<span>7:55 AM</span>
+<a class="font-medium text-[#E56B6F] hover:underline" href="#">Inspect</a>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="p-4 hover:bg-slate-50/50 transition-colors">
+<div class="flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#64748B]">support_agent</span>
+<span class="text-xs font-semibold text-[#111827]">Incorrect scan reported</span>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-[#475569] border border-slate-200">
+                  Medium
+                </span>
+</div>
+<p class="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                Duplicate tap reported for St. Xavier's stop (RFID #8839)
+              </p>
+<div class="mt-2 flex items-center justify-between text-[11px] text-[#64748B]">
+<span>25m ago</span>
+<a class="font-medium text-[#E56B6F] hover:underline" href="#">Resolve</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 3: FULL-WIDTH RECENT RECORDED EVENTS TABLE -->
+<div class="w-full bg-white rounded-lg border border-[#E2E8F0] overflow-hidden shadow-xs">
+<div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+<div>
+<h2 class="text-sm font-semibold text-[#111827]">Recent Recorded Events</h2>
+<p class="text-xs text-[#64748B] mt-0.5">Real-time attendance swipe stream across active transit units.</p>
+</div>
+<a class="text-xs font-medium text-[#64748B] hover:text-[#111827] transition-colors" href="#">
+            View all events
+          </a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+<th class="py-2.5 px-6">Student ID &amp; Name</th>
+<th class="py-2.5 px-6">Bus</th>
+<th class="py-2.5 px-6">Event Type</th>
+<th class="py-2.5 px-6">Time</th>
+<th class="py-2.5 px-6">Verification</th>
+<th class="py-2.5 px-6 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#E2E8F0] text-xs">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-6">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-medium text-[#111827]">
+                      AS
+                    </div>
+<div>
+<span class="font-medium text-[#111827]">Aarav Sharma</span>
+<span class="block text-[11px] text-[#64748B]">STU-4819</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-6">
+<span class="text-[#111827] font-medium">BUS-104</span>
+<span class="block text-[11px] text-[#64748B]">Route 04</span>
+</td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                    Boarding
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-[#64748B]">
+                  08:24:12 AM
+                </td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0]">
+                    Verified
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-right">
+<button class="text-xs font-medium text-[#64748B] hover:text-[#111827] transition-colors">
+                    View
+                  </button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-6">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-medium text-[#111827]">
+                      PN
+                    </div>
+<div>
+<span class="font-medium text-[#111827]">Priya Nair</span>
+<span class="block text-[11px] text-[#64748B]">STU-5201</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-6">
+<span class="text-[#111827] font-medium">BUS-109</span>
+<span class="block text-[11px] text-[#64748B]">Route 11</span>
+</td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                    Drop-off
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-[#64748B]">
+                  08:21:45 AM
+                </td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0]">
+                    Verified
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-right">
+<button class="text-xs font-medium text-[#64748B] hover:text-[#111827] transition-colors">
+                    View
+                  </button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-6">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-medium text-[#111827]">
+                      RV
+                    </div>
+<div>
+<span class="font-medium text-[#111827]">Rohan Varma</span>
+<span class="block text-[11px] text-[#64748B]">STU-8842</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-6">
+<span class="text-[#111827] font-medium">BUS-104</span>
+<span class="block text-[11px] text-[#64748B]">Plan: RT-07</span>
+</td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                    Boarding
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-[#64748B]">
+                  08:14:02 AM
+                </td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                    Route Mismatch
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-right">
+<button class="text-xs font-medium text-[#E56B6F] hover:underline transition-colors">
+                    Review
+                  </button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-6">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-medium text-[#111827]">
+                      AI
+                    </div>
+<div>
+<span class="font-medium text-[#111827]">Ananya Iyer</span>
+<span class="block text-[11px] text-[#64748B]">STU-3390</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-6">
+<span class="text-[#111827] font-medium">BUS-102</span>
+<span class="block text-[11px] text-[#64748B]">Route 08</span>
+</td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                    Boarding
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-[#64748B]">
+                  07:58:30 AM
+                </td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                    GPS Degraded
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-right">
+<button class="text-xs font-medium text-[#64748B] hover:text-[#111827] transition-colors">
+                    Details
+                  </button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 px-6">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-medium text-[#111827]">
+                      KM
+                    </div>
+<div>
+<span class="font-medium text-[#111827]">Kabir Mehta</span>
+<span class="block text-[11px] text-[#64748B]">STU-7114</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-6">
+<span class="text-[#111827] font-medium">BUS-115</span>
+<span class="block text-[11px] text-[#64748B]">Route 02</span>
+</td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                    Drop-off
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-[#64748B]">
+                  07:52:18 AM
+                </td>
+<td class="py-3.5 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0]">
+                    Verified
+                  </span>
+</td>
+<td class="py-3.5 px-6 text-right">
+<button class="text-xs font-medium text-[#64748B] hover:text-[#111827] transition-colors">
+                    View
+                  </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-3 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
+<span>RFID scans record discrete boarding or drop-off events, not continuous physical presence.</span>
+<span>Showing 5 of 342 records</span>
+</div>
+</div>
+</main>
+</div>
+</body></html>

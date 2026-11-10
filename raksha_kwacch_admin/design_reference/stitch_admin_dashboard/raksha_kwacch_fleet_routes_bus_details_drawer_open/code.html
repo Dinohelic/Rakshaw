@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"error":"#ba1a1a","on-tertiary-fixed-variant":"#4d4546","on-primary-fixed":"#410009","on-secondary":"#ffffff","surface-variant":"#d3e4fe","on-error":"#ffffff","on-surface":"#0b1c30","secondary-fixed-dim":"#c0c6db","inverse-surface":"#213145","tertiary-container":"#998e8f","surface-container-high":"#dce9ff","surface-container":"#e5eeff","primary-fixed-dim":"#ffb3b3","inverse-on-surface":"#eaf1ff","background":"#f8f9ff","outline":"#8a7171","on-error-container":"#93000a","on-secondary-container":"#5c6274","on-secondary-fixed":"#141b2b","tertiary-fixed-dim":"#d0c3c5","on-primary-container":"#5c0111","surface-container-low":"#eff4ff","surface-dim":"#cbdbf5","on-tertiary-container":"#2f2829","surface-container-highest":"#d3e4fe","surface":"#f8f9ff","on-tertiary-fixed":"#211a1b","tertiary":"#655c5d","inverse-primary":"#ffb3b3","tertiary-fixed":"#eddfe0","secondary":"#575e70","on-tertiary":"#ffffff","surface-tint":"#a43a40","secondary-container":"#d9dff5","surface-container-lowest":"#ffffff","on-surface-variant":"#564241","secondary-fixed":"#dce2f7","primary-container":"#e56b6f","on-primary-fixed-variant":"#84222b","on-secondary-fixed-variant":"#404758","surface-bright":"#f8f9ff","on-background":"#0b1c30","primary-fixed":"#ffdad9","primary":"#a43a40","error-container":"#ffdad6","on-primary":"#ffffff","outline-variant":"#ddc0bf"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"gutter":"1rem","margin-desktop":"2rem","space-xs":"0.25rem","space-sm":"0.5rem","space-lg":"1.5rem","space-md":"1rem","gutter-desktop":"1.5rem","space-xl":"2rem","margin":"1rem"},fontFamily:{"headline-lg":["Inter"],"display":["Inter"],"label-lg":["Inter"],"label-sm":["Inter"],"label-md":["Inter"],"headline-sm":["Inter"],"body-lg":["Inter"],"headline-md":["Inter"],"body-md":["Inter"],"body-sm":["Inter"]},fontSize:{"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"600"}],"display":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"500"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"500"}],"headline-sm":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-[240px] bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-16 px-space-md border-b border-outline-variant/20 flex items-center gap-space-sm"><div class="w-9 h-9 rounded-lg bg-primary-fixed flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[20px]">security</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface leading-tight">Raksha Kwacch</span><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Transport Admin</span></div></div><div class="px-space-sm pt-space-md"><span class="px-space-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block mb-space-xs">Navigation</span><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-fixed text-primary font-medium border-l-2 border-primary rounded-r-lg"><a class="flex items-center gap-space-sm px-space-sm py-space-sm text-secondary hover:bg-surface-container-low hover:text-on-surface rounded-lg transition-colors font-label-lg text-label-lg" data-path="overview" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Overview</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm text-secondary hover:bg-surface-container-low hover:text-on-surface rounded-lg transition-colors font-label-lg text-label-lg" data-path="live-tracking" href="#"><span class="material-symbols-outlined text-[20px]">location_on</span><span>Live Tracking</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm text-secondary hover:bg-surface-container-low hover:text-on-surface rounded-lg transition-colors font-label-lg text-label-lg" data-path="attendance" href="#"><span class="material-symbols-outlined text-[20px]">event_note</span><span>Attendance</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm text-secondary hover:bg-surface-container-low hover:text-on-surface rounded-lg transition-colors font-label-lg text-label-lg" data-path="verification" href="#"><span class="material-symbols-outlined text-[20px]">verified_user</span><span>Verification</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm text-secondary hover:bg-surface-container-low hover:text-on-surface rounded-lg transition-colors font-label-lg text-label-lg" data-path="fleet-and-routes" href="#"><span class="material-symbols-outlined text-[20px]">directions_bus</span><span>Fleet &amp; Routes</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm text-secondary hover:bg-surface-container-low hover:text-on-surface rounded-lg transition-colors font-label-lg text-label-lg" data-path="people" href="#"><span class="material-symbols-outlined text-[20px]">group</span><span>People</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm text-secondary hover:bg-surface-container-low hover:text-on-surface rounded-lg transition-colors font-label-lg text-label-lg" data-path="alerts-and-support" href="#"><span class="material-symbols-outlined text-[20px]">warning</span><span>Alerts &amp; Support</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-sm text-secondary hover:bg-surface-container-low hover:text-on-surface rounded-lg transition-colors font-label-lg text-label-lg" data-path="settings" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Settings</span></a></nav></div></div><div class="p-space-sm border-t border-outline-variant/20"><div class="p-space-sm bg-surface-container-lowest hover:bg-surface-container-low rounded-lg flex items-center justify-between transition-colors"><div class="flex items-center gap-space-sm min-w-0"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="font-label-md text-label-md text-on-primary font-semibold">RS</span></div><div class="flex flex-col min-w-0"><span class="font-label-md text-label-md text-on-surface font-medium truncate">Rajesh Sharma</span><span class="font-label-sm text-label-sm text-on-surface-variant truncate">Super Admin</span></div></div><button class="text-secondary hover:text-primary transition-colors p-space-xs rounded flex items-center justify-center" title="Logout" type="button"><span class="material-symbols-outlined text-[18px]">logout</span></button></div></div></aside><div class="pl-[240px]"><header class="fixed top-0 left-[240px] right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-md border-b border-outline-variant/30 z-40 px-space-xl flex items-center justify-between"><div class="flex flex-col"><h1 class="font-headline-sm text-headline-sm text-on-surface">Fleet &amp; Routes</h1><p class="font-body-sm text-body-sm text-on-surface-variant">Manage buses, routes, and transport assignments.</p></div><div class="flex items-center gap-space-md"><span class="font-label-md text-label-md text-secondary hidden sm:inline-block">Wednesday, Oct 24, 2024</span><span class="px-space-sm py-space-xs rounded-full bg-secondary-container text-on-secondary-fixed font-label-sm text-label-sm uppercase font-semibold tracking-wider">DEMO MODE</span><button class="relative p-space-xs text-secondary hover:text-on-surface rounded-lg hover:bg-surface-container-low transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary"></span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="font-label-sm text-label-sm text-on-primary font-semibold">RS</span></div></div></header><main class="w-full pt-16 bg-surface"><div class="max-w-[1440px] mx-auto px-space-lg py-space-xl"><div class="flex flex-col w-full">
+<!-- Tabs Navigation -->
+<div class="flex items-center gap-space-lg mb-space-lg bg-surface-container-lowest px-space-md pt-space-xs rounded-xl shadow-sm">
+<div class="flex items-center gap-space-md">
+<button class="flex items-center gap-space-xs pb-space-sm pt-space-sm text-primary-container font-headline-sm text-headline-sm transition-colors relative" type="button">
+<span class="material-symbols-outlined text-[20px]">directions_bus</span>
+<span>Buses</span>
+<span class="ml-space-xs px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm">12</span>
+<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-container rounded-full"></span>
+</button>
+<button class="flex items-center gap-space-xs pb-space-sm pt-space-sm text-secondary hover:text-on-surface font-headline-sm text-headline-sm transition-colors group" type="button">
+<span class="material-symbols-outlined text-[20px] text-secondary group-hover:text-on-surface">alt_route</span>
+<span>Routes</span>
+<span class="ml-space-xs px-2 py-0.5 rounded-full bg-surface-container-high text-secondary font-label-sm text-label-sm">11</span>
+</button>
+</div>
+</div>
+<!-- KPI Summary Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md mb-space-lg">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between transition-all hover:shadow-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-md text-label-md text-secondary uppercase tracking-wider">Total Buses</span>
+<div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">directions_bus</span>
+</div>
+</div>
+<div>
+<div class="font-display text-display text-on-surface tracking-tight mb-space-xs">12</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+          Registered fleet vehicles
+        </p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between transition-all hover:shadow-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-md text-label-md text-secondary uppercase tracking-wider">Assigned Buses</span>
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+</div>
+</div>
+<div>
+<div class="font-display text-display text-on-surface tracking-tight mb-space-xs">10</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+          Operating on active routes
+        </p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between transition-all hover:shadow-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-md text-label-md text-secondary uppercase tracking-wider">Unassigned Buses</span>
+<div class="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[18px]">pause_circle</span>
+</div>
+</div>
+<div>
+<div class="font-display text-display text-on-surface tracking-tight mb-space-xs">2</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span>
+          Available for scheduling
+        </p>
+</div>
+</div>
+</div>
+<!-- Search & Filter Controls -->
+<div class="bg-surface-container-lowest rounded-xl p-space-sm mb-space-lg shadow-sm flex flex-wrap lg:flex-nowrap items-center justify-between gap-space-sm">
+<div class="flex flex-wrap sm:flex-nowrap items-center gap-space-sm w-full lg:w-auto">
+<!-- Search Input -->
+<div class="relative w-full sm:w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-secondary">search</span>
+<input class="w-full h-10 pl-9 pr-3 rounded-lg bg-surface-container-low font-body-md text-body-md text-on-surface placeholder:text-secondary focus:outline-none focus:bg-surface-container-lowest transition-colors" id="busSearchInput" placeholder="Search bus ID, registration or driver..." type="text"/>
+</div>
+<!-- Assignment Filter -->
+<div class="relative min-w-[190px]">
+<select class="w-full h-10 px-3 pr-8 rounded-lg bg-surface-container-low font-label-md text-label-md text-on-surface appearance-none focus:outline-none cursor-pointer" id="assignmentFilter">
+<option value="all">Assignment: All Assignments</option>
+<option value="assigned">Assigned Only</option>
+<option value="unassigned">Unassigned Only</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-secondary pointer-events-none">expand_more</span>
+</div>
+<!-- Operational Filter -->
+<div class="relative min-w-[190px]">
+<select class="w-full h-10 px-3 pr-8 rounded-lg bg-surface-container-low font-label-md text-label-md text-on-surface appearance-none focus:outline-none cursor-pointer" id="statusFilter">
+<option value="all">Operational: All Statuses</option>
+<option value="active">Active Fleet</option>
+<option value="standby">Standby Fleet</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-secondary pointer-events-none">expand_more</span>
+</div>
+<!-- Reset Filter Button -->
+<button class="h-10 px-space-sm rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-low font-label-md text-label-md transition-colors whitespace-nowrap flex items-center gap-1" id="resetFiltersBtn" type="button">
+<span class="material-symbols-outlined text-[16px]">restart_alt</span>
+<span>Reset</span>
+</button>
+</div>
+<!-- Actions Right -->
+<div class="flex items-center gap-space-sm w-full lg:w-auto justify-end">
+<button class="h-10 px-space-md rounded-lg bg-primary-container hover:bg-primary text-on-primary font-label-md text-label-md shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Add Bus</span>
+</button>
+</div>
+</div>
+<!-- Buses Table Container -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden mb-space-lg flex flex-col">
+<!-- Table Header Panel -->
+<div class="flex items-center justify-between p-space-md bg-surface-container-lowest">
+<div class="flex items-center gap-space-sm">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Registered Buses</h2>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-high text-secondary font-label-sm text-label-sm">12 Total</span>
+</div>
+<button class="h-9 px-space-md rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px] text-secondary">file_download</span>
+<span>Export CSV</span>
+</button>
+</div>
+<!-- Table Canvas -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/70">
+<th class="py-space-sm px-space-md font-label-sm text-label-sm text-secondary uppercase tracking-wider">Bus / Vehicle</th>
+<th class="py-space-sm px-space-md font-label-sm text-label-sm text-secondary uppercase tracking-wider">Registration</th>
+<th class="py-space-sm px-space-md font-label-sm text-label-sm text-secondary uppercase tracking-wider">Assigned Route</th>
+<th class="py-space-sm px-space-md font-label-sm text-label-sm text-secondary uppercase tracking-wider">Driver</th>
+<th class="py-space-sm px-space-md font-label-sm text-label-sm text-secondary uppercase tracking-wider">Capacity</th>
+<th class="py-space-sm px-space-md font-label-sm text-label-sm text-secondary uppercase tracking-wider">Assignment</th>
+<th class="py-space-sm px-space-md font-label-sm text-label-sm text-secondary uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-none text-on-surface" id="busTableBody">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-rose-50/50 border-l-4 border-primary-container" data-assignment="assigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-104</span>
+<span class="font-body-sm text-body-sm text-secondary">Ashok Leyland</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">DL-01-EF-9081</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-on-surface">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>RT-04 — North Campus</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Ramesh Kumar</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">42 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Assigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-surface-container-lowest" data-assignment="assigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-109</span>
+<span class="font-body-sm text-body-sm text-secondary">Tata Starbus</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">DL-01-EF-9082</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-on-surface">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>RT-11 — Dwarka Express</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Sanjay Verma</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">45 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Assigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors" data-assignment="assigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-115</span>
+<span class="font-body-sm text-body-sm text-secondary">Eicher Skyline</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">DL-01-CD-6612</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-on-surface">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>RT-02 — South Extension</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Amit Singh</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">38 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Assigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-surface-container-lowest" data-assignment="assigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-102</span>
+<span class="font-body-sm text-body-sm text-secondary">Force Traveller</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">DL-01-AB-2145</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-on-surface">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>RT-08 — Noida Corridor</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Vikram Yadav</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">26 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Assigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors" data-assignment="assigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-107</span>
+<span class="font-body-sm text-body-sm text-secondary">Tata Starbus</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">DL-01-GH-3320</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-on-surface">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>RT-05 — Rohini Sector 15</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Manoj Sharma</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">45 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Assigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-surface-container-lowest" data-assignment="assigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-111</span>
+<span class="font-body-sm text-body-sm text-secondary">Ashok Leyland</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">HR-26-BR-1188</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-on-surface">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>RT-09 — Gurugram Cyber Hub</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Rajesh Kumar</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">42 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Assigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors" data-assignment="assigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-101</span>
+<span class="font-body-sm text-body-sm text-secondary">Tata Starbus</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">DL-01-PQ-5519</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-on-surface">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>RT-01 — Central Secretariat</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Deepesh Pant</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">45 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Assigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+<!-- Row 8 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-surface-container-lowest" data-assignment="assigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-118</span>
+<span class="font-body-sm text-body-sm text-secondary">Eicher Skyline</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">DL-01-XY-8840</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-on-surface">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>RT-07 — Vasant Kunj</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Kuldeep Rawat</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">38 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Assigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+<!-- Row 9 (Unassigned) -->
+<tr class="hover:bg-surface-container-low/50 transition-colors" data-assignment="unassigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-120</span>
+<span class="font-body-sm text-body-sm text-secondary">Tata Starbus</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">DL-01-KL-4521</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary/70 italic">No Route Assigned</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary/70 italic">No Driver Assigned</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">45 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Unassigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+<!-- Row 10 (Unassigned) -->
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-surface-container-lowest" data-assignment="unassigned">
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">BUS-121</span>
+<span class="font-body-sm text-body-sm text-secondary">Force Traveller</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-label-md text-label-md text-on-surface bg-surface-container-low px-2 py-0.5 rounded">DL-01-MN-7823</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary/70 italic">No Route Assigned</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary/70 italic">No Driver Assigned</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-body-md text-body-md text-secondary">26 seats</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Unassigned
+              </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="inline-flex items-center gap-3">
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">View</button>
+<span class="text-secondary/30">•</span>
+<button class="font-label-md text-label-md text-primary-container hover:text-primary transition-colors" type="button">Edit</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="p-space-md bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<div class="font-body-sm text-body-sm text-secondary">
+        Showing <span class="font-medium text-on-surface">1–10</span> of <span class="font-medium text-on-surface">12</span> buses
+      </div>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-secondary hover:bg-surface-container-low transition-colors disabled:opacity-40" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-container text-on-primary font-label-md text-label-md shadow-sm" type="button">
+          1
+        </button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-secondary hover:bg-surface-container-low transition-colors font-label-md text-label-md" type="button">
+          2
+        </button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-secondary hover:bg-surface-container-low transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Operational Footer Note -->
+<div class="rounded-xl p-space-md bg-surface-container-low flex items-start gap-space-sm text-secondary">
+<span class="material-symbols-outlined text-[20px] text-primary-container flex-shrink-0 mt-0.5">info</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+      Transport fleet management records physical bus asset and route allocations. Vehicle GPS and live telemetry are managed independently in <a class="text-primary-container font-medium hover:underline" href="#">Live Tracking</a>.
+    </p>
+</div>
+<!-- Inline Interaction Logic -->
+<script>
+    (function() {
+      const searchInput = document.getElementById('busSearchInput');
+      const assignmentFilter = document.getElementById('assignmentFilter');
+      const statusFilter = document.getElementById('statusFilter');
+      const resetBtn = document.getElementById('resetFiltersBtn');
+      const rows = document.querySelectorAll('#busTableBody tr');
+
+      function filterTable() {
+        const query = (searchInput?.value || '').toLowerCase().trim();
+        const assignment = assignmentFilter?.value || 'all';
+
+        rows.forEach(row => {
+          const text = row.innerText.toLowerCase();
+          const rowAssignment = row.getAttribute('data-assignment');
+
+          const matchesQuery = !query || text.includes(query);
+          const matchesAssignment = assignment === 'all' || rowAssignment === assignment;
+
+          if (matchesQuery && matchesAssignment) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      }
+
+      searchInput?.addEventListener('input', filterTable);
+      assignmentFilter?.addEventListener('change', filterTable);
+      statusFilter?.addEventListener('change', filterTable);
+
+      resetBtn?.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        if (assignmentFilter) assignmentFilter.value = 'all';
+        if (statusFilter) statusFilter.value = 'all';
+        filterTable();
+      });
+    })();
+  </script>
+</div></div></main></div><!-- Slide-over Drawer Overlay & Backdrop -->
+<div aria-hidden="true" class="fixed inset-0 bg-slate-900/30 backdrop-blur-[1px] z-50 transition-opacity"></div>
+<!-- Right-side Slide-over Bus Details Drawer -->
+<aside aria-label="Bus Details" class="fixed top-0 right-0 bottom-0 w-[440px] max-w-full bg-white shadow-2xl border-l border-slate-200 z-50 flex flex-col h-full animate-in slide-in-from-right duration-200" role="dialog">
+<!-- Fixed Header -->
+<div class="p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<h2 class="text-lg font-semibold text-slate-900 leading-tight">Bus Details</h2>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+        </span>
+</div>
+<span class="text-xs font-mono text-slate-500 mt-1">BUS-104 • Fleet Asset</span>
+</div>
+<button aria-label="Close details panel" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Scrollable Body Content -->
+<div class="flex-1 overflow-y-auto p-5 space-y-6 text-slate-800">
+<!-- SECTION 1: VEHICLE INFORMATION -->
+<div>
+<h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Vehicle Information</h3>
+<div class="bg-slate-50/70 border border-slate-200/80 rounded-lg p-3.5 space-y-3">
+<div class="grid grid-cols-2 gap-3 text-sm">
+<div>
+<span class="text-xs text-slate-500 block mb-0.5">Bus ID</span>
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white border border-slate-200 rounded font-mono font-medium text-slate-900 text-xs">
+              BUS-104
+              <span class="material-symbols-outlined text-[13px] text-slate-400" title="Read-only Asset ID">lock</span>
+</div>
+</div>
+<div>
+<span class="text-xs text-slate-500 block mb-0.5">Registration No.</span>
+<span class="font-mono font-medium text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 text-xs inline-block">DL-01-EF-9081</span>
+</div>
+</div>
+<div class="border-t border-slate-200/60 pt-2.5 grid grid-cols-2 gap-3 text-sm">
+<div>
+<span class="text-xs text-slate-500 block mb-0.5">Manufacturer &amp; Model</span>
+<span class="font-medium text-slate-800">Ashok Leyland</span>
+<span class="text-xs text-slate-500 block">Oyster Commercial</span>
+</div>
+<div>
+<span class="text-xs text-slate-500 block mb-0.5">Seating Capacity</span>
+<span class="font-medium text-slate-800 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-slate-500">airline_seat_recline_normal</span>
+              42 seats
+            </span>
+<span class="text-xs text-slate-500 block">Standard School Transit</span>
+</div>
+</div>
+<div class="border-t border-slate-200/60 pt-2.5 grid grid-cols-2 gap-3 text-sm">
+<div>
+<span class="text-xs text-slate-500 block mb-0.5">Operational Status</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active Fleet
+            </span>
+</div>
+<div>
+<span class="text-xs text-slate-500 block mb-0.5">Fitness &amp; Insurance</span>
+<span class="text-xs font-medium text-slate-700 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-emerald-600">verified</span> Valid thru Mar 2025
+            </span>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 2: CURRENT ASSIGNMENT -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Current Assignment</h3>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-surface-container-high text-on-surface border border-slate-200">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span> Assigned
+        </span>
+</div>
+<div class="bg-white border border-slate-200 rounded-lg p-3.5 space-y-3 shadow-xs">
+<div class="grid grid-cols-2 gap-3 text-sm">
+<div>
+<span class="text-xs text-slate-500 block mb-0.5">Assigned Route</span>
+<span class="font-medium text-slate-900 flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-[#E56B6F]"></span>
+              RT-04
+            </span>
+<span class="text-xs text-slate-600 block mt-0.5">North Campus</span>
+</div>
+<div>
+<span class="text-xs text-slate-500 block mb-0.5">Shift Schedule</span>
+<span class="font-medium text-slate-800 text-xs block">Morning &amp; Afternoon</span>
+<span class="text-[11px] text-slate-500 block">07:30 AM – 03:45 PM</span>
+</div>
+</div>
+<div class="border-t border-slate-100 pt-3 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 text-xs font-semibold">
+              RK
+            </div>
+<div class="flex flex-col">
+<span class="text-xs text-slate-500">Assigned Driver</span>
+<span class="text-sm font-medium text-slate-900">Ramesh Kumar</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-xs text-slate-500 block">Contact Phone</span>
+<span class="text-xs font-mono text-slate-700">+91 98102 33419</span>
+</div>
+</div>
+<div class="border-t border-slate-100 pt-2.5 flex items-center justify-between text-xs text-slate-500">
+<span>Effective Assignment Date</span>
+<span class="font-mono font-medium text-slate-700">Oct 24, 2024</span>
+</div>
+</div>
+</div>
+<!-- SECTION 3: DEVICE ASSIGNMENT (Hardware Telemetry / Provisioning) -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Device Assignment (Hardware Provisioning)</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+          Provisioned
+        </span>
+</div>
+<div class="bg-slate-50/70 border border-slate-200/80 rounded-lg p-3.5 space-y-3">
+<div class="grid grid-cols-2 gap-3 text-xs">
+<div>
+<span class="text-slate-500 block mb-0.5">Device ID</span>
+<span class="font-mono font-semibold text-slate-800 text-[13px]">DEV-BUS-104</span>
+</div>
+<div>
+<span class="text-slate-500 block mb-0.5">Hardware Architecture</span>
+<span class="font-medium text-slate-800">ESP32-S3 + A7672S</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 text-xs border-t border-slate-200/60 pt-2.5">
+<div>
+<span class="text-slate-500 block mb-0.5">RFID Reader</span>
+<span class="font-medium text-slate-800 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-slate-500">badge</span> RC522 (13.56 MHz)
+            </span>
+</div>
+<div>
+<span class="text-slate-500 block mb-0.5">GPS Module</span>
+<span class="font-medium text-slate-800 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-slate-500">location_searching</span> NEO-M8N
+            </span>
+</div>
+</div>
+<div class="border-t border-slate-200/60 pt-2.5 flex items-center justify-between text-xs">
+<span class="text-slate-500">Provisioning Registry:</span>
+<span class="inline-flex items-center gap-1 font-medium text-slate-700">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Registered (Demo)
+          </span>
+</div>
+</div>
+<!-- Non-live telemetry clarifying note -->
+<div class="mt-2 bg-slate-50 border border-slate-200/60 rounded-lg p-2.5 text-[11px] text-slate-500 leading-relaxed flex items-start gap-2">
+<span class="material-symbols-outlined text-[15px] text-slate-400 shrink-0 mt-0.5">info</span>
+<span>Provisioning status confirms hardware registry configuration. Registered status does not indicate live connectivity or online GPS telemetry.</span>
+</div>
+</div>
+</div>
+<!-- Fixed Bottom Action Area -->
+<div class="border-t border-slate-200 p-4 bg-white flex items-center justify-between gap-3 shrink-0">
+<button class="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-medium text-sm hover:bg-slate-50 transition-colors" type="button">
+      Close
+    </button>
+<div class="flex items-center gap-2">
+<button class="px-4 py-2 bg-primary-container text-white rounded-lg font-medium text-sm hover:bg-[#d65b5f] shadow-sm transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+        Edit Bus
+      </button>
+</div>
+</div>
+</aside></body></html>

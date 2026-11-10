@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container": "#e5eeff", "tertiary": "#655c5d", "on-primary-fixed-variant": "#84222b", "surface-bright": "#f8f9ff", "on-error-container": "#93000a", "surface-dim": "#cbdbf5", "inverse-surface": "#213145", "surface": "#f8f9ff", "inverse-primary": "#ffb3b3", "surface-variant": "#d3e4fe", "on-tertiary": "#ffffff", "tertiary-container": "#998e8f", "secondary": "#575e70", "on-surface-variant": "#564241", "on-tertiary-fixed-variant": "#4d4546", "outline-variant": "#ddc0bf", "tertiary-fixed": "#eddfe0", "on-surface": "#0b1c30", "on-secondary-container": "#5c6274", "on-primary-container": "#5c0111", "surface-container-low": "#eff4ff", "error": "#ba1a1a", "surface-container-high": "#dce9ff", "on-secondary-fixed-variant": "#404758", "inverse-on-surface": "#eaf1ff", "primary-container": "#e56b6f", "surface-tint": "#a43a40", "surface-container-highest": "#d3e4fe", "tertiary-fixed-dim": "#d0c3c5", "secondary-fixed": "#dce2f7", "primary-fixed-dim": "#ffb3b3", "on-primary-fixed": "#410009", "on-secondary-fixed": "#141b2b", "on-tertiary-fixed": "#211a1b", "on-background": "#0b1c30", "on-secondary": "#ffffff", "outline": "#8a7171", "on-tertiary-container": "#2f2829", "secondary-container": "#d9dff5", "on-primary": "#ffffff", "background": "#f8f9ff", "primary-fixed": "#ffdad9", "primary": "#a43a40", "surface-container-lowest": "#ffffff", "on-error": "#ffffff", "secondary-fixed-dim": "#c0c6db", "error-container": "#ffdad6" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin-desktop": "2rem", "space-xl": "2rem", "space-xs": "0.25rem", "gutter-desktop": "1.5rem", "space-sm": "0.5rem", "space-lg": "1.5rem", "gutter": "1rem", "margin": "1rem", "space-md": "1rem" }, "fontFamily": { "headline-lg": ["Inter"], "label-sm": ["Inter"], "body-sm": ["Inter"], "headline-md": ["Inter"], "label-lg": ["Inter"], "label-md": ["Inter"], "display": ["Inter"], "headline-sm": ["Inter"], "body-lg": ["Inter"], "body-md": ["Inter"] }, "fontSize": { "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600"}], "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600"}], "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}], "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}], "label-lg": ["14px", {"lineHeight": "20px", "fontWeight": "500"}], "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}], "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}], "headline-sm": ["16px", {"lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600"}], "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}], "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}] } } } }</script></head><body class="bg-background font-body-md text-on-background selection:bg-primary-fixed selection:text-on-primary-fixed"><aside class="fixed top-0 left-0 h-screen w-64 bg-surface-container-lowest z-40 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 px-space-lg flex items-center gap-space-sm"><div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[20px]">security</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Raksha Kwacch</span><span class="font-label-sm text-label-sm text-secondary leading-tight mt-1">School Transit Core</span></div></div><div class="px-space-md py-space-sm"><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-label-lg rounded-lg"><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-secondary font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="overview" href="#"><span class="material-symbols-outlined text-[20px]">dashboard</span><span>Overview</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-secondary font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="live-tracking" href="#"><span class="material-symbols-outlined text-[20px]">near_me</span><span>Live Tracking</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-secondary font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="attendance" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span><span>Attendance</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-secondary font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="verification" href="#"><span class="material-symbols-outlined text-[20px]">verified_user</span><span>Verification</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-secondary font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="fleet-routes" href="#"><span class="material-symbols-outlined text-[20px]">directions_bus</span><span>Fleet & Routes</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-2.5 transition-colors bg-primary-container text-on-primary font-label-lg rounded-lg" data-path="people-management" href="#"><span class="material-symbols-outlined text-[20px]">group</span><span>People</span></a></nav></div></div><div class="p-space-md flex flex-col gap-space-xs"><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-secondary font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="alerts-support" href="#"><span class="material-symbols-outlined text-[20px]">help_center</span><span>Alerts & Support</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-secondary font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="system-settings" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Settings</span></a><div class="mt-space-sm p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between"><div class="flex flex-col"><span class="font-label-sm text-label-sm text-secondary uppercase">Fleet Telemetry</span><span class="font-label-md text-label-md text-on-surface">GPS Connected</span></div><span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-md z-30 shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between px-space-xl"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">People Management</span><span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">Roster 2024-25</span></div><span class="h-4 w-[1px] bg-outline-variant"></span><span class="font-body-sm text-body-sm text-secondary">Academic Session Q3 • Today</span></div><div class="flex items-center gap-space-md"><div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold tracking-wide uppercase"><span class="w-2 h-2 rounded-full bg-error"></span><span>Demo Mode</span></div><div class="relative"><button class="w-9 h-9 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary ring-2 ring-surface-container-lowest"></span></div><span class="h-6 w-[1px] bg-outline-variant"></span><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col text-left"><span class="font-label-md text-label-md text-on-surface leading-tight">Admin Officer</span><span class="font-label-sm text-label-sm text-secondary leading-tight">Fleet Operations</span></div></div></div></header><main class="w-full pt-16 px-space-xl py-space-xl bg-background min-h-screen"><div class="flex flex-col w-full relative">
+<!-- DIMMED BACKGROUND LAYER: People > Students Dashboard -->
+<div class="w-full pointer-events-none select-none filter blur-[1px] opacity-40 transition-all duration-300">
+<!-- Top Action Bar & KPIs -->
+<div class="flex flex-col gap-space-lg mb-space-lg">
+<div class="flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Student Directory</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Enrolled Students Roster</h2>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="h-9 px-3 rounded-lg bg-surface-container-lowest text-secondary font-label-md text-label-md flex items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+<span>Academic Year 2024-25</span>
+</div>
+<button class="h-9 px-4 rounded-lg bg-primary text-on-primary font-label-md text-label-md shadow-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Register Student</span>
+</button>
+</div>
+</div>
+<!-- KPI Summary Cards -->
+<div class="grid grid-cols-4 gap-space-md">
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Total Students</span>
+<span class="material-symbols-outlined text-[20px]">school</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-display text-display text-on-surface">1,248</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Enrolled</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Assigned to Routes</span>
+<span class="material-symbols-outlined text-[20px]">directions_bus</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-display text-display text-on-surface">1,186</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">95.0% coverage</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Active Transit RFID</span>
+<span class="material-symbols-outlined text-[20px]">contactless</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-display text-display text-on-surface">1,172</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">98.8% linked</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Route Exceptions</span>
+<span class="material-symbols-outlined text-[20px]">notification_important</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-display text-display text-on-surface">14</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Pending action</span>
+</div>
+</div>
+</div>
+<!-- Search & Filters Toolbar -->
+<div class="p-space-sm rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between gap-space-md">
+<div class="flex-1 flex items-center gap-space-sm px-3 py-2 rounded-lg bg-surface-container-low text-secondary">
+<span class="material-symbols-outlined text-[18px]">search</span>
+<span class="font-body-md text-body-md text-secondary">Filter by student name, ID (STU-XXXX), grade, or route...</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-9 px-3 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+<span>Filters</span>
+</button>
+<button class="h-9 px-3 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Export Roster</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Background Table Mock -->
+<div class="rounded-xl bg-surface-container-lowest shadow-sm overflow-hidden">
+<div class="grid grid-cols-12 px-6 py-3 bg-surface-container-low font-label-sm text-label-sm text-secondary uppercase tracking-wider">
+<span class="col-span-3">Student Name & ID</span>
+<span class="col-span-2">Class & Section</span>
+<span class="col-span-3">Assigned Route</span>
+<span class="col-span-2">Pickup / Drop Stop</span>
+<span class="col-span-1">Status</span>
+<span class="col-span-1 text-right">Actions</span>
+</div>
+<!-- Sample Row Aarav Sharma (Active Focus) -->
+<div class="grid grid-cols-12 px-6 py-3.5 items-center bg-surface-container/60">
+<div class="col-span-3 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center font-bold">AS</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">Aarav Sharma</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono">STU-4819</span>
+</div>
+</div>
+<div class="col-span-2 flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Grade 8 • Section C</span>
+<span class="font-label-sm text-label-sm text-secondary">Roll #18</span>
+</div>
+<div class="col-span-3 flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">RT-04 • North Campus</span>
+<span class="font-label-sm text-label-sm text-secondary">Bus-104 (Tata Starbus)</span>
+</div>
+<div class="col-span-2 flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Rohini Sector 15</span>
+<span class="font-label-sm text-label-sm text-secondary">Stop 03 • 07:15 AM</span>
+</div>
+<div class="col-span-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">Active</span>
+</div>
+<div class="col-span-1 flex justify-end">
+<button class="px-2.5 py-1 rounded-md bg-primary-container text-on-primary font-label-sm text-label-sm">Editing</button>
+</div>
+</div>
+<!-- Mock Row 2 -->
+<div class="grid grid-cols-12 px-6 py-3.5 items-center">
+<div class="col-span-3 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container text-secondary font-label-md text-label-md flex items-center justify-center">MK</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">Meera Kapoor</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono">STU-4820</span>
+</div>
+</div>
+<div class="col-span-2 flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Grade 9 • Section A</span>
+<span class="font-label-sm text-label-sm text-secondary">Roll #07</span>
+</div>
+<div class="col-span-3 flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">RT-02 • South Extension</span>
+<span class="font-label-sm text-label-sm text-secondary">Bus-108 (Eicher Skyline)</span>
+</div>
+<div class="col-span-2 flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Defence Colony Pkt 4</span>
+<span class="font-label-sm text-label-sm text-secondary">Stop 01 • 07:05 AM</span>
+</div>
+<div class="col-span-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">Active</span>
+</div>
+<div class="col-span-1 flex justify-end">
+<span class="material-symbols-outlined text-secondary text-[20px]">more_vert</span>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL SCRIM OVERLAY -->
+<div class="fixed inset-0 bg-on-surface/20 backdrop-blur-[2px] z-40 transition-opacity duration-300" id="modal-scrim"></div>
+<!-- RIGHT-SIDE EDIT DRAWER (approx 440px wide, enterprise calm palette) -->
+<div class="fixed top-0 right-0 h-screen w-[440px] max-w-full bg-surface-container-lowest shadow-2xl z-50 flex flex-col justify-between">
+<!-- DRAWER HEADER (Sticky Top) -->
+<div class="shrink-0 bg-surface-container-lowest px-space-lg pt-5 pb-4 shadow-sm z-30">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-2.5">
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">Edit Student</h1>
+<!-- Active Status Pill -->
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span>Active</span>
+</span>
+</div>
+<button class="w-8 h-8 rounded-lg bg-surface-container-low hover:bg-surface-container text-secondary hover:text-on-surface flex items-center justify-center transition-colors" id="close-drawer-btn">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<p class="font-label-md text-label-md text-secondary">STU-4819 • Aarav Sharma • Academic Year 2024–25</p>
+</div>
+<!-- DRAWER BODY (Scrollable Work Container) -->
+<div class="flex-1 overflow-y-auto px-space-lg py-5 space-y-5">
+<!-- SECTION 1: STUDENT INFORMATION -->
+<section class="p-4 rounded-xl bg-surface-container-low space-y-4">
+<!-- Section Header -->
+<div class="flex items-center justify-between pb-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">
+            SECTION 1: STUDENT INFORMATION
+          </span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-secondary bg-surface-container px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[13px]">lock</span>
+<span>Identity Locked</span>
+</span>
+</div>
+<!-- Student ID (Immutable Record) -->
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-secondary block">Student ID</label>
+<div class="h-10 px-3 rounded-lg bg-surface-container flex items-center justify-between text-on-surface font-mono text-body-md shadow-inner">
+<span class="font-semibold text-secondary">STU-4819</span>
+<span class="material-symbols-outlined text-[18px] text-secondary">verified</span>
+</div>
+<span class="font-body-sm text-body-sm text-secondary block">Student ID is an immutable record identifier.</span>
+</div>
+<!-- Full Name (Editable) -->
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-on-surface block font-medium" for="student-name-input">
+            Full Name <span class="text-primary">*</span>
+</label>
+<div class="relative">
+<input class="w-full h-10 px-3 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" id="student-name-input" type="text" value="Aarav Sharma"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-secondary text-[18px]">badge</span>
+</div>
+</div>
+<!-- Class / Grade & Section (2-Column Grid) -->
+<div class="grid grid-cols-2 gap-3">
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-on-surface block font-medium" for="grade-select">
+              Class / Grade <span class="text-primary">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer" id="grade-select">
+<option value="Grade 6">Grade 6</option>
+<option value="Grade 7">Grade 7</option>
+<option selected="" value="Grade 8">Grade 8</option>
+<option value="Grade 9">Grade 9</option>
+<option value="Grade 10">Grade 10</option>
+<option value="Grade 11">Grade 11</option>
+<option value="Grade 12">Grade 12</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-secondary pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-on-surface block font-medium" for="section-select">
+              Section <span class="text-primary">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer" id="section-select">
+<option value="Section A">Section A</option>
+<option value="Section B">Section B</option>
+<option selected="" value="Section C">Section C</option>
+<option value="Section D">Section D</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-secondary pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Academic Session & Roster Year -->
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-secondary block">Academic Year</label>
+<div class="h-10 px-3 rounded-lg bg-surface-container flex items-center justify-between text-body-md">
+<span class="text-on-surface font-medium">2024–25</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-medium">Active Roster</span>
+</div>
+</div>
+<!-- Account Status (Editable Dropdown) -->
+<div class="space-y-1.5 pt-1">
+<label class="font-label-md text-label-md text-on-surface block font-medium" for="account-status-select">
+            Account Status <span class="text-primary">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer" id="account-status-select">
+<option selected="" value="Active">Active • Authorized for Transit</option>
+<option value="Inactive">Inactive / Suspended</option>
+<option value="Withdrawn">Withdrawn from School</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-secondary pointer-events-none text-[18px]">expand_more</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary leading-snug">
+            Deactivating this profile suspends bus boarding eligibility and disables parent portal telemetry sync. Confirmation required.
+          </p>
+</div>
+</section>
+<!-- SECTION 2: TRANSPORT ASSIGNMENT -->
+<section class="p-4 rounded-xl bg-surface-container-low space-y-4">
+<!-- Section Header -->
+<div class="flex items-center justify-between pb-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">
+            SECTION 2: TRANSPORT ASSIGNMENT
+          </span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-primary-container bg-primary-fixed px-2 py-0.5 rounded-full font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span>Live Schedule Active</span>
+</span>
+</div>
+<!-- Assigned Route -->
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-on-surface block font-medium" for="route-select">
+            Assigned Route <span class="text-primary">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer" id="route-select">
+<option selected="" value="RT-04">RT-04 — North Campus (Sector 14 - 18)</option>
+<option value="RT-02">RT-02 — South Extension Central</option>
+<option value="RT-05">RT-05 — Outer Ring Express</option>
+<option value="RT-08">RT-08 — Dwarka Connector</option>
+<option value="RT-11">RT-11 — Civil Lines Shuttle</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-secondary pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Assigned Bus (Derived Linked Field) -->
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-secondary block">Assigned Bus</label>
+<div class="p-3 rounded-lg bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-md bg-surface-container-lowest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">directions_bus</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface text-[14px]">BUS-104 • Tata Starbus</span>
+<span class="font-body-sm text-body-sm text-secondary">42 Seater • Driver: R. Verma</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container-lowest text-secondary">Auto Linked</span>
+</div>
+<span class="font-body-sm text-body-sm text-secondary block">Derived automatically from RT-04 roster allocation.</span>
+</div>
+<!-- Morning Pickup Stop -->
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-on-surface block font-medium" for="pickup-stop-select">
+            Morning Pickup Stop <span class="text-primary">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer" id="pickup-stop-select">
+<option value="Stop 01">Pitampura Outer Gate (Stop 01 • 07:00 AM)</option>
+<option value="Stop 02">Rohini Metro Station (Stop 02 • 07:08 AM)</option>
+<option selected="" value="Stop 03">Rohini Sector 15 (Stop 03 • 07:15 AM)</option>
+<option value="Stop 04">Sector 16 Market (Stop 04 • 07:22 AM)</option>
+<option value="Stop 05">Sector 18 Pocket B (Stop 05 • 07:30 AM)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-secondary pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Afternoon Drop-off Stop -->
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-on-surface block font-medium" for="drop-stop-select">
+            Afternoon Drop-off Stop <span class="text-primary">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer" id="drop-stop-select">
+<option value="Stop 01">School Main Gate Return (Stop 01 • 02:15 PM)</option>
+<option value="Stop 02">Sector 18 Pocket B (Stop 02 • 02:30 PM)</option>
+<option selected="" value="Stop 03">Rohini Sector 15 (Stop 03 • 02:40 PM)</option>
+<option value="Stop 04">Rohini Metro Station (Stop 04 • 02:48 PM)</option>
+<option value="Stop 05">Pitampura Outer Gate (Stop 05 • 02:58 PM)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-secondary pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Assignment Status Badge -->
+<div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-container">
+<span class="font-label-md text-label-md text-secondary">Allocation Status</span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>Active Transport Allocation</span>
+</span>
+</div>
+<!-- Transport Validation & Safety Notice -->
+<div class="p-3 rounded-lg bg-primary-fixed/40 flex items-start gap-2.5 shadow-sm">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">verified_user</span>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-md text-label-md text-on-primary-fixed font-semibold">Route & Stop Consistency Verified</span>
+<p class="font-body-sm text-body-sm text-on-primary-fixed leading-relaxed">
+              Bus capacity and scheduled transit stops are matched. Any change to route assignment takes effect immediately on live driver manifest and telematics boarding checks.
+            </p>
+</div>
+</div>
+</section>
+<!-- SECTION 3: RFID CARD MANAGEMENT (Peeked Upper Portion) -->
+<section class="p-4 rounded-xl bg-surface-container-low space-y-4 mb-4">
+<!-- Section Header -->
+<div class="flex items-center justify-between pb-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">
+            SECTION 3: RFID CARD MANAGEMENT
+          </span>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-secondary-container bg-secondary-container px-2 py-0.5 rounded-full font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>Assigned</span>
+</span>
+<button class="font-label-sm text-label-sm text-primary hover:text-on-primary-fixed-variant font-semibold underline underline-offset-2">
+              Manage RFID
+            </button>
+</div>
+</div>
+<!-- Card UID & Specs Preview -->
+<div class="p-3 rounded-lg bg-surface-container-lowest shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">nfc</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-mono tracking-widest text-[13px]">•••• •••• •••• B4E3</span>
+<span class="font-body-sm text-body-sm text-secondary">RFID Contactless Card (Mifare 13.56 MHz)</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[18px]">verified</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary leading-snug">
+          RFID replacement, unassignment, and reassignment require separate two-step confirmation with audit logging.
+        </p>
+</section>
+</div>
+<!-- DRAWER FOOTER (Sticky Bottom) -->
+<div class="shrink-0 bg-surface-container-lowest px-space-lg py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] z-30 flex items-center justify-between">
+<button class="h-10 px-5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-lg text-label-lg transition-colors" id="cancel-btn">
+        Cancel
+      </button>
+<div class="flex items-center gap-2">
+<button class="h-10 px-6 rounded-lg bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-label-lg text-label-lg shadow-sm flex items-center gap-2 transition-all active:scale-[0.98]" id="save-btn">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span>Save Changes</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Interactive micro-behavior for the drawer
+  (function initEditStudentDrawer() {
+    const closeBtn = document.getElementById('close-drawer-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const scrim = document.getElementById('modal-scrim');
+
+    function dismissDrawer() {
+      if (confirm('Discard unsaved edits to Aarav Sharma (STU-4819)?')) {
+        window.history.back();
+      }
+    }
+
+    if (closeBtn) closeBtn.addEventListener('click', dismissDrawer);
+    if (cancelBtn) cancelBtn.addEventListener('click', dismissDrawer);
+    if (scrim) scrim.addEventListener('click', dismissDrawer);
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        saveBtn.disabled = true;
+        const prevText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span><span>Updating...</span>';
+        
+        setTimeout(() => {
+          saveBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span><span>Saved</span>';
+          setTimeout(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = prevText;
+          }, 1200);
+        }, 800);
+      });
+    }
+  })();
+</script></main></div><div class="fixed inset-y-0 right-0 z-50 w-[440px] bg-surface-container-lowest shadow-[0_12px_32px_rgba(17,24,39,0.08)] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col" id="drawer-container"></div></body></html>
