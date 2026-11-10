@@ -40,10 +40,6 @@ class TestLiveAttendanceRepository implements LiveAttendanceRepository {
   List<LiveAttendanceRecord> get currentRecords => List.unmodifiable(records);
 
   @override
-  List<LiveAttendanceRecord> get currentRecords =>
-      List.unmodifiable(records);
-
-  @override
   Future<List<LiveAttendanceRecord>> getRecentAttendance({
     int limit = 100,
   }) async {
