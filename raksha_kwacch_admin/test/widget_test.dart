@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:raksha_kwacch_admin/app/app.dart';
+import 'package:raksha_kwacch_admin/app/router/app_router.dart';
+import 'package:raksha_kwacch_admin/core/auth/supabase_admin_auth_repository.dart';
+
+import 'test_helpers/test_admin_auth_repository.dart';
 
 void main() {
+  setUp(() {
+    final authRepo = TestAdminAuthRepository(
+      configured: false,
+      authorized: true,
+    );
+    SupabaseAdminAuthRepository.shared = authRepo;
+    AppRouter.resetRouter(authRepo: authRepo);
+  });
   testWidgets('Admin Portal smoke test', (WidgetTester tester) async {
     // Set screen size to desktop
     tester.view.physicalSize = const Size(1200, 800);

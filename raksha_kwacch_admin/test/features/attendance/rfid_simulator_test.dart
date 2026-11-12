@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:raksha_kwacch_admin/app/app.dart';
 import 'package:raksha_kwacch_admin/app/router/app_router.dart';
+import 'package:raksha_kwacch_admin/core/auth/supabase_admin_auth_repository.dart';
 import 'package:raksha_kwacch_admin/features/attendance/data/demo_attendance_repository.dart';
+
+import '../../test_helpers/test_admin_auth_repository.dart';
+
 import 'package:raksha_kwacch_admin/features/attendance/domain/attendance_models.dart';
 import 'package:raksha_kwacch_admin/features/attendance/domain/rfid_processing_service.dart';
 import 'package:raksha_kwacch_admin/features/people/data/demo_people_repository.dart';
@@ -279,6 +283,9 @@ void main() {
   group('MVP Task 3 — Attendance & RFID UI Integration Tests', () {
     setUp(() {
       DemoAttendanceRepository.resetShared();
+      final authRepo = TestAdminAuthRepository(authorized: true);
+      SupabaseAdminAuthRepository.shared = authRepo;
+      AppRouter.resetRouter(authRepo: authRepo);
     });
 
     Widget createTestApp() {

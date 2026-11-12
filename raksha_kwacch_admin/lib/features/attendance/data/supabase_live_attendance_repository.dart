@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/supabase_config.dart';
 import '../../../core/network/api_endpoints.dart';
+import '../../../core/utils/app_date_time_format.dart';
 import '../domain/live_attendance_models.dart';
 import '../domain/live_attendance_repository.dart';
 
@@ -245,6 +246,109 @@ class SupabaseLiveAttendanceRepository implements LiveAttendanceRepository {
     _bufferedRecords.addAll(deduplicated.values);
     // Sort latest first
     _bufferedRecords.sort((a, b) => b.scannedAt.compareTo(a.scannedAt));
+  }
+
+  @override
+  Future<List<LiveAttendanceRecord>> getAttendanceForIstDay({
+    DateTime? istDay,
+    int limit = 1000,
+  }) async {
+    final client = _client;
+    if (client == null) {
+      throw const LiveAttendanceException(
+        'Supabase client is not configured. Provide SUPABASE_ANON_KEY to enable live mode.',
+      );
+    }
+
+    final utcStart = AppDateTimeFormat.getIstDayStartInUtc(istDay);
+    final utcEnd = AppDateTimeFormat.getIstDayEndInUtc(istDay);
+
+    try {
+      try {
+        final List<dynamic> rows = await client
+            .from(ApiEndpoints.tableAttendance)
+            .select(
+              '*, ${ApiEndpoints.tableStudents} (id, student_code, student_name, rfid_uid, school_id)',
+            )
+            .gte('scanned_at', utcStart.toIso8601String())
+            .lt('scanned_at', utcEnd.toIso8601String())
+            .order('scanned_at', ascending: false)
+            .limit(limit);
+
+        final records = rows.map((r) {
+          final rowMap = Map<String, dynamic>.from(r as Map);
+          final rec = LiveAttendanceRecord.fromJson(rowMap);
+          if (rec.student != null) {
+            _studentCache[rec.studentId] = rec.student!;
+          }
+          return rec;
+        }).toList();
+
+        _updateBuffer(records);
+        return records;
+      } catch (embeddedJoinError) {
+        if (kDebugMode) {
+          debugPrint(
+            'SupabaseLiveAttendanceRepository: getAttendanceForIstDay join failed ($embeddedJoinError). Falling back to two-step query.',
+          );
+        }
+
+        final List<dynamic> attendanceRows = await client
+            .from(ApiEndpoints.tableAttendance)
+            .select('*')
+            .gte('scanned_at', utcStart.toIso8601String())
+            .lt('scanned_at', utcEnd.toIso8601String())
+            .order('scanned_at', ascending: false)
+            .limit(limit);
+
+        final studentIds = attendanceRows
+            .map((r) => (r as Map)['student_id']?.toString())
+            .whereType<String>()
+            .where((id) => !_studentCache.containsKey(id))
+            .toSet()
+            .toList();
+
+        if (studentIds.isNotEmpty) {
+          try {
+            final List<dynamic> studentRows = await client
+                .from(ApiEndpoints.tableStudents)
+                .select('id, student_code, student_name, rfid_uid, school_id')
+                .filter('id', 'in', studentIds);
+
+            for (final s in studentRows) {
+              final studentMap = Map<String, dynamic>.from(s as Map);
+              final studentInfo = LiveStudentInfo.fromJson(studentMap);
+              _studentCache[studentInfo.id] = studentInfo;
+            }
+          } catch (_) {}
+        }
+
+        final records = attendanceRows.map((r) {
+          final rowMap = Map<String, dynamic>.from(r as Map);
+          final studentId = rowMap['student_id']?.toString() ?? '';
+          return LiveAttendanceRecord.fromJson(
+            rowMap,
+            resolvedStudent: _studentCache[studentId],
+          );
+        }).toList();
+
+        _updateBuffer(records);
+        return records;
+      }
+    } on PostgrestException catch (e) {
+      throw LiveAttendanceException(
+        'Database error querying today\'s attendance (${e.code}): ${e.message}',
+        details: e.details?.toString(),
+      );
+    } catch (e) {
+      throw LiveAttendanceException('Failed to fetch today\'s attendance: $e');
+    }
+  }
+
+  @override
+  void clearCache() {
+    _bufferedRecords.clear();
+    _studentCache.clear();
   }
 
   @override

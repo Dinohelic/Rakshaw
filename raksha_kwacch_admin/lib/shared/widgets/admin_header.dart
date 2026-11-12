@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_colors.dart';
+import '../../core/auth/admin_auth_repository.dart';
+import '../../core/auth/admin_auth_state.dart';
+import '../../core/auth/supabase_admin_auth_repository.dart';
 import '../../core/config/supabase_config.dart';
 import '../../core/utils/app_date_time_format.dart';
+import 'admin_sidebar.dart';
 
 class AdminHeader extends StatelessWidget {
   final String title;
+  final AdminAuthRepository? authRepository;
 
-  const AdminHeader({super.key, required this.title});
+  const AdminHeader({super.key, required this.title, this.authRepository});
+
+  AdminAuthRepository get _authRepo =>
+      authRepository ?? SupabaseAdminAuthRepository.shared;
 
   static String formatDate(DateTime now) =>
       AppDateTimeFormat.formatHeaderDate(now);
@@ -41,23 +49,26 @@ class AdminHeader extends StatelessWidget {
       );
     }
 
-    final bool isConfigured = SupabaseConfig.isConfigured;
+    final bool isLiveHardware =
+        SupabaseConfig.isConfigured && _authRepo.isAuthorizedAdmin;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
-        color: isConfigured
+        color: isLiveHardware
             ? const Color(0xFFECFDF5)
             : AppColors.demoBackground,
         border: Border.all(
-          color: isConfigured ? const Color(0xFFA7F3D0) : AppColors.demoBorder,
+          color: isLiveHardware
+              ? const Color(0xFFA7F3D0)
+              : AppColors.demoBorder,
         ),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isConfigured) ...[
+          if (isLiveHardware) ...[
             Container(
               width: 6,
               height: 6,
@@ -69,9 +80,9 @@ class AdminHeader extends StatelessWidget {
             const SizedBox(width: 5),
           ],
           Text(
-            isConfigured ? 'LIVE HARDWARE' : 'DEMO MODE',
+            isLiveHardware ? 'LIVE HARDWARE' : 'DEMO MODE',
             style: TextStyle(
-              color: isConfigured
+              color: isLiveHardware
                   ? const Color(0xFF065F46)
                   : AppColors.demoText,
               fontSize: 11,
@@ -146,23 +157,35 @@ class AdminHeader extends StatelessWidget {
             constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 16),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              border: Border.all(color: AppColors.border),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: const Text(
-              'RS',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textDark,
-              ),
-            ),
+          StreamBuilder<AdminAuthState>(
+            stream: _authRepo.authStateChanges,
+            initialData: _authRepo.currentState,
+            builder: (context, snapshot) {
+              final email = _authRepo.currentAdminEmail;
+              final initials = AdminSidebar.getInitials(email);
+
+              return Tooltip(
+                message: email ?? 'Administrator',
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.brandLightRed,
+                    border: Border.all(color: AppColors.brandBorderRed),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    initials,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.brandRed,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

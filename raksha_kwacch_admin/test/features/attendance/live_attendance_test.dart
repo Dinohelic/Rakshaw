@@ -55,6 +55,31 @@ class TestLiveAttendanceRepository implements LiveAttendanceRepository {
   }
 
   @override
+  Future<List<LiveAttendanceRecord>> getAttendanceForIstDay({
+    DateTime? istDay,
+    int limit = 1000,
+  }) async {
+    if (!configured) {
+      throw const LiveAttendanceException(
+        'Supabase client is not configured. Provide SUPABASE_ANON_KEY to enable live mode.',
+      );
+    }
+    if (shouldThrow) {
+      throw LiveAttendanceException(throwMessage);
+    }
+    final filtered = records
+        .where((r) => AppDateTimeFormat.isSameIstDay(r.scannedAt, istDay))
+        .take(limit)
+        .toList();
+    return List.unmodifiable(filtered);
+  }
+
+  @override
+  void clearCache() {
+    records.clear();
+  }
+
+  @override
   Stream<List<LiveAttendanceRecord>> streamRecentAttendance({int limit = 100}) {
     if (!configured) {
       return Stream.error(
@@ -1914,57 +1939,57 @@ void main() {
     },
   );
 
-  group('Task 1D — Critical Live Attendance & Verification Reliability Tests', () {
-    testWidgets(
-      '25. Live Attendance loads automatically on entry without clicking Refresh Live',
-      (tester) async {
-        tester.view.physicalSize = const Size(1280, 900);
-        tester.view.devicePixelRatio = 1.0;
+  group(
+    'Task 1D — Critical Live Attendance & Verification Reliability Tests',
+    () {
+      testWidgets(
+        '25. Live Attendance loads automatically on entry without clicking Refresh Live',
+        (tester) async {
+          tester.view.physicalSize = const Size(1280, 900);
+          tester.view.devicePixelRatio = 1.0;
 
-        final liveRepo = TestLiveAttendanceRepository(
-          initialRecords: [
-            LiveAttendanceRecord(
-              id: 'auto-load-rec-1',
-              studentId: 's1',
-              scannedAt: DateTime.parse('2026-11-10T08:00:00Z'),
-              eventType: LiveEventType.morningBoarding,
-              verificationStatus: LiveVerificationStatus.phonePresent,
-              phoneDistanceM: 14.0,
-              student: const LiveStudentInfo(
-                id: 's1',
-                studentCode: 'SGTU-2024-CSE-001',
-                studentName: 'Aarav Sharma',
+          final liveRepo = TestLiveAttendanceRepository(
+            initialRecords: [
+              LiveAttendanceRecord(
+                id: 'auto-load-rec-1',
+                studentId: 's1',
+                scannedAt: DateTime.parse('2026-11-10T08:00:00Z'),
+                eventType: LiveEventType.morningBoarding,
+                verificationStatus: LiveVerificationStatus.phonePresent,
+                phoneDistanceM: 14.0,
+                student: const LiveStudentInfo(
+                  id: 's1',
+                  studentCode: 'SGTU-2024-CSE-001',
+                  studentName: 'Aarav Sharma',
+                ),
+              ),
+            ],
+          );
+          final authRepo = TestAdminAuthRepository(authorized: true);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: AttendancePage(
+                liveAttendanceRepository: liveRepo,
+                authRepository: authRepo,
+                initialLiveHardwareMode: true,
               ),
             ),
-          ],
-        );
-        final authRepo = TestAdminAuthRepository(authorized: true);
+          );
+          await tester.pumpAndSettle();
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: AttendancePage(
-              liveAttendanceRepository: liveRepo,
-              authRepository: authRepo,
-              initialLiveHardwareMode: true,
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
+          // Without tapping any refresh button, telemetry data is rendered automatically!
+          expect(find.text('Aarav Sharma'), findsOneWidget);
+          expect(find.text('Live Supabase Hardware Telemetry'), findsOneWidget);
+          expect(find.text('1 Hardware Events'), findsOneWidget);
 
-        // Without tapping any refresh button, telemetry data is rendered automatically!
-        expect(find.text('Aarav Sharma'), findsOneWidget);
-        expect(find.text('Live Supabase Hardware Telemetry'), findsOneWidget);
-        expect(find.text('1 Hardware Events'), findsOneWidget);
+          addTearDown(tester.view.resetPhysicalSize);
+          liveRepo.dispose();
+          authRepo.dispose();
+        },
+      );
 
-        addTearDown(tester.view.resetPhysicalSize);
-        liveRepo.dispose();
-        authRepo.dispose();
-      },
-    );
-
-    test(
-      '26. LiveAttendanceRepository currentRecords buffers history across navigation',
-      () async {
+      test('26. LiveAttendanceRepository currentRecords buffers history across navigation', () async {
         final liveRepo = TestLiveAttendanceRepository(
           initialRecords: [
             LiveAttendanceRecord(
@@ -1993,14 +2018,36 @@ void main() {
         expect(ctrl1.liveRecords.first.id, equals('buf-1'));
         ctrl1.dispose();
         liveRepo.dispose();
-      },
-    );
+      });
 
-    test(
-      '27. Realtime updates add new hardware records and merge cleanly',
-      () async {
-        final liveRepo = TestLiveAttendanceRepository(
-          initialRecords: [
+      test(
+        '27. Realtime updates add new hardware records and merge cleanly',
+        () async {
+          final liveRepo = TestLiveAttendanceRepository(
+            initialRecords: [
+              LiveAttendanceRecord(
+                id: 'rt-rec-1',
+                studentId: 's1',
+                scannedAt: DateTime.parse('2026-11-10T08:00:00Z'),
+                eventType: LiveEventType.morningBoarding,
+                verificationStatus: LiveVerificationStatus.phonePresent,
+              ),
+            ],
+          );
+
+          final ctrl = AttendanceController(
+            attendanceRepository: DemoAttendanceRepository(),
+            peopleRepository: DemoPeopleRepository(),
+            liveAttendanceRepository: liveRepo,
+            authRepository: TestAdminAuthRepository(authorized: true),
+            initialLiveHardwareMode: true,
+          );
+
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          expect(ctrl.liveRecords.length, equals(1));
+
+          // Hardware sends a new boarding event over Realtime
+          liveRepo.emit([
             LiveAttendanceRecord(
               id: 'rt-rec-1',
               studentId: 's1',
@@ -2008,88 +2055,63 @@ void main() {
               eventType: LiveEventType.morningBoarding,
               verificationStatus: LiveVerificationStatus.phonePresent,
             ),
-          ],
-        );
+            LiveAttendanceRecord(
+              id: 'rt-rec-2',
+              studentId: 's2',
+              scannedAt: DateTime.parse('2026-11-10T08:05:00Z'),
+              eventType: LiveEventType.morningBoarding,
+              verificationStatus: LiveVerificationStatus.phoneNotNearby,
+              phoneDistanceM: 120.0,
+            ),
+          ]);
 
-        final ctrl = AttendanceController(
-          attendanceRepository: DemoAttendanceRepository(),
-          peopleRepository: DemoPeopleRepository(),
-          liveAttendanceRepository: liveRepo,
-          authRepository: TestAdminAuthRepository(authorized: true),
-          initialLiveHardwareMode: true,
-        );
+          await Future<void>.delayed(const Duration(milliseconds: 20));
 
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-        expect(ctrl.liveRecords.length, equals(1));
+          // Now 2 records, newest first
+          expect(ctrl.liveRecords.length, equals(2));
+          expect(ctrl.liveRecords.first.id, equals('rt-rec-2'));
+          expect(ctrl.isRealtimeActive, isTrue);
 
-        // Hardware sends a new boarding event over Realtime
-        liveRepo.emit([
-          LiveAttendanceRecord(
-            id: 'rt-rec-1',
+          ctrl.dispose();
+          liveRepo.dispose();
+        },
+      );
+
+      test(
+        '28. Duplicate Realtime events with same id do not duplicate rows',
+        () async {
+          final liveRepo = TestLiveAttendanceRepository();
+          final ctrl = AttendanceController(
+            attendanceRepository: DemoAttendanceRepository(),
+            peopleRepository: DemoPeopleRepository(),
+            liveAttendanceRepository: liveRepo,
+            authRepository: TestAdminAuthRepository(authorized: true),
+            initialLiveHardwareMode: true,
+          );
+
+          final rec = LiveAttendanceRecord(
+            id: 'dup-id-1',
             studentId: 's1',
             scannedAt: DateTime.parse('2026-11-10T08:00:00Z'),
             eventType: LiveEventType.morningBoarding,
             verificationStatus: LiveVerificationStatus.phonePresent,
-          ),
-          LiveAttendanceRecord(
-            id: 'rt-rec-2',
-            studentId: 's2',
-            scannedAt: DateTime.parse('2026-11-10T08:05:00Z'),
-            eventType: LiveEventType.morningBoarding,
-            verificationStatus: LiveVerificationStatus.phoneNotNearby,
-            phoneDistanceM: 120.0,
-          ),
-        ]);
+          );
 
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+          liveRepo.emit([rec]);
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          expect(ctrl.liveRecords.length, equals(1));
 
-        // Now 2 records, newest first
-        expect(ctrl.liveRecords.length, equals(2));
-        expect(ctrl.liveRecords.first.id, equals('rt-rec-2'));
-        expect(ctrl.isRealtimeActive, isTrue);
+          // Duplicate event arrives
+          liveRepo.emit([rec, rec]);
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          expect(ctrl.liveRecords.length, equals(1));
 
-        ctrl.dispose();
-        liveRepo.dispose();
-      },
-    );
+          ctrl.dispose();
+          liveRepo.dispose();
+        },
+      );
 
-    test(
-      '28. Duplicate Realtime events with same id do not duplicate rows',
-      () async {
-        final liveRepo = TestLiveAttendanceRepository();
-        final ctrl = AttendanceController(
-          attendanceRepository: DemoAttendanceRepository(),
-          peopleRepository: DemoPeopleRepository(),
-          liveAttendanceRepository: liveRepo,
-          authRepository: TestAdminAuthRepository(authorized: true),
-          initialLiveHardwareMode: true,
-        );
-
-        final rec = LiveAttendanceRecord(
-          id: 'dup-id-1',
-          studentId: 's1',
-          scannedAt: DateTime.parse('2026-11-10T08:00:00Z'),
-          eventType: LiveEventType.morningBoarding,
-          verificationStatus: LiveVerificationStatus.phonePresent,
-        );
-
-        liveRepo.emit([rec]);
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-        expect(ctrl.liveRecords.length, equals(1));
-
-        // Duplicate event arrives
-        liveRepo.emit([rec, rec]);
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-        expect(ctrl.liveRecords.length, equals(1));
-
-        ctrl.dispose();
-        liveRepo.dispose();
-      },
-    );
-
-    test(
-      '29. Independent error handling: Realtime disconnection preserves fetched history',
-      () async {
+      test('29. Independent error handling: Realtime disconnection preserves fetched history', () async {
         final liveRepo = TestLiveAttendanceRepository(
           initialRecords: [
             LiveAttendanceRecord(
@@ -2124,298 +2146,34 @@ void main() {
 
         ctrl.dispose();
         liveRepo.dispose();
-      },
-    );
+      });
 
-    testWidgets(
-      '30. Verified Nearby (phone_present) is classified as No Review Needed and does not enter Pending Review',
-      (tester) async {
-        tester.view.physicalSize = const Size(1280, 900);
-        tester.view.devicePixelRatio = 1.0;
-
-        final liveRepo = TestLiveAttendanceRepository(
-          initialRecords: [
-            LiveAttendanceRecord(
-              id: 'verified-rec-1',
-              studentId: 's1',
-              scannedAt: DateTime.parse('2026-11-10T08:00:00Z'),
-              eventType: LiveEventType.morningBoarding,
-              verificationStatus: LiveVerificationStatus.phonePresent,
-              phoneDistanceM: 8.5,
-              student: const LiveStudentInfo(
-                id: 's1',
-                studentCode: 'SGTU-2024-CSE-001',
-                studentName: 'Aarav Sharma',
-              ),
-            ),
-          ],
-        );
-
-        final authRepo = TestAdminAuthRepository(authorized: true);
-        final reviewRepo = TestAttendanceReviewRepository();
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: VerificationPage(
-              liveAttendanceRepository: liveRepo,
-              authRepository: authRepo,
-              reviewRepository: reviewRepo,
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Verified Nearby should NOT count as Pending Review
-        expect(find.text('Pending Review'), findsOneWidget);
-        // The value for Pending Review KPI card is 0
-        expect(find.text('0'), findsAtLeastNWidgets(1));
-
-        // Table shows "No Review Needed" badge and "View" action
-        expect(find.text('No Review Needed'), findsOneWidget);
-        expect(find.widgetWithText(TextButton, 'View'), findsOneWidget);
-        expect(find.widgetWithText(TextButton, 'Review'), findsNothing);
-
-        addTearDown(tester.view.resetPhysicalSize);
-        liveRepo.dispose();
-        authRepo.dispose();
-      },
-    );
-
-    testWidgets(
-      '31. Flagged records (phone_not_nearby) enter the review workflow',
-      (tester) async {
-        tester.view.physicalSize = const Size(1280, 900);
-        tester.view.devicePixelRatio = 1.0;
-
-        final liveRepo = TestLiveAttendanceRepository(
-          initialRecords: [
-            LiveAttendanceRecord(
-              id: 'flagged-rec-1',
-              studentId: 's2',
-              scannedAt: DateTime.parse('2026-11-10T08:10:00Z'),
-              eventType: LiveEventType.morningBoarding,
-              verificationStatus: LiveVerificationStatus.phoneNotNearby,
-              phoneDistanceM: 185.0,
-              student: const LiveStudentInfo(
-                id: 's2',
-                studentCode: 'SGTU-2024-ECE-002',
-                studentName: 'Ananya Gupta',
-              ),
-            ),
-          ],
-        );
-
-        final authRepo = TestAdminAuthRepository(authorized: true);
-        final reviewRepo = TestAttendanceReviewRepository();
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: VerificationPage(
-              liveAttendanceRepository: liveRepo,
-              authRepository: authRepo,
-              reviewRepository: reviewRepo,
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Counted in Pending Review
-        expect(find.text('Pending Review'), findsAtLeastNWidgets(1));
-        expect(find.text('1'), findsAtLeastNWidgets(1));
-
-        // Table shows "Review" action
-        expect(find.widgetWithText(TextButton, 'Review'), findsOneWidget);
-
-        addTearDown(tester.view.resetPhysicalSize);
-        liveRepo.dispose();
-        authRepo.dispose();
-      },
-    );
-
-    testWidgets(
-      '32. Administrative review persistence updates review status and counters',
-      (tester) async {
-        tester.view.physicalSize = const Size(1280, 900);
-        tester.view.devicePixelRatio = 1.0;
-
-        final liveRepo = TestLiveAttendanceRepository(
-          initialRecords: [
-            LiveAttendanceRecord(
-              id: 'flagged-rec-1',
-              studentId: 's2',
-              scannedAt: DateTime.parse('2026-11-10T08:10:00Z'),
-              eventType: LiveEventType.morningBoarding,
-              verificationStatus: LiveVerificationStatus.phoneNotNearby,
-              phoneDistanceM: 185.0,
-              student: const LiveStudentInfo(
-                id: 's2',
-                studentCode: 'SGTU-2024-ECE-002',
-                studentName: 'Ananya Gupta',
-              ),
-            ),
-          ],
-        );
-
-        final authRepo = TestAdminAuthRepository(authorized: true);
-        final reviewRepo = TestAttendanceReviewRepository();
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: VerificationPage(
-              liveAttendanceRepository: liveRepo,
-              authRepository: authRepo,
-              reviewRepository: reviewRepo,
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Tap Review to open drawer
-        await tester.ensureVisible(find.widgetWithText(TextButton, 'Review'));
-        await tester.tap(find.widgetWithText(TextButton, 'Review'));
-        await tester.pumpAndSettle();
-
-        // Enter review notes
-        await tester.enterText(
-          find.byType(TextFormField).first,
-          'Contacted transport supervisor. False alarm, student was seated in rear.',
-        );
-
-        // Tap Save Review
-        await tester.tap(find.widgetWithText(ElevatedButton, 'Save Review'));
-        await tester.pumpAndSettle();
-
-        // Review is saved in repository!
-        expect(reviewRepo.reviews.length, equals(1));
-        expect(reviewRepo.reviews.first.attendanceId, equals('flagged-rec-1'));
-
-        addTearDown(tester.view.resetPhysicalSize);
-        liveRepo.dispose();
-        authRepo.dispose();
-      },
-    );
-
-    testWidgets(
-      '33. Blocked review persistence displays migration notice without false success',
-      (tester) async {
-        tester.view.physicalSize = const Size(1280, 900);
-        tester.view.devicePixelRatio = 1.0;
-
-        final liveRepo = TestLiveAttendanceRepository(
-          initialRecords: [
-            LiveAttendanceRecord(
-              id: 'flagged-rec-1',
-              studentId: 's2',
-              scannedAt: DateTime.parse('2026-11-10T08:10:00Z'),
-              eventType: LiveEventType.morningBoarding,
-              verificationStatus: LiveVerificationStatus.phoneNotNearby,
-              phoneDistanceM: 185.0,
-              student: const LiveStudentInfo(
-                id: 's2',
-                studentCode: 'SGTU-2024-ECE-002',
-                studentName: 'Ananya Gupta',
-              ),
-            ),
-          ],
-        );
-
-        final authRepo = TestAdminAuthRepository(authorized: true);
-        final reviewRepo = TestAttendanceReviewRepository(
-          persistenceAvailable: false,
-        );
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: VerificationPage(
-              liveAttendanceRepository: liveRepo,
-              authRepository: authRepo,
-              reviewRepository: reviewRepo,
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Open drawer
-        await tester.ensureVisible(find.widgetWithText(TextButton, 'Review'));
-        await tester.tap(find.widgetWithText(TextButton, 'Review'));
-        await tester.pumpAndSettle();
-
-        // Enter notes and save
-        await tester.enterText(
-          find.byType(TextFormField).first,
-          'Administrative review note.',
-        );
-        await tester.tap(find.widgetWithText(ElevatedButton, 'Save Review'));
-        await tester.pumpAndSettle();
-
-        // Drawer stays open displaying migration notice without claiming false success
-        expect(find.text('Database persistence blocked: Table "attendance_reviews" does not exist in Supabase yet. Migration script "supabase/migrations/20261110_create_attendance_reviews.sql" is prepared awaiting administrator approval.'), findsOneWidget);
-        expect(reviewRepo.reviews.isEmpty, isTrue);
-
-        addTearDown(tester.view.resetPhysicalSize);
-        liveRepo.dispose();
-        authRepo.dispose();
-      },
-    );
-
-    test('34. Date/Time formatting converts UTC to Asia/Kolkata (IST)', () {
-      final utc = DateTime.parse('2026-11-10T08:14:02.000Z');
-      // 08:14:02 UTC + 05:30 = 13:44:02 IST
-      final timeStr = AppDateTimeFormat.formatTime(utc);
-      expect(timeStr, equals('13:44:02 IST'));
-
-      final dateStr = AppDateTimeFormat.formatDate(utc);
-      expect(dateStr, equals('10 Nov 2026'));
-
-      final fullStr = AppDateTimeFormat.formatDateTime(utc);
-      expect(fullStr, equals('10 Nov 2026, 13:44:02 IST'));
-    });
-
-    test('35. Midnight boundary timestamp conversion rolls over date accurately', () {
-      // 23:45 UTC on Nov 10 rolls over to 05:15 IST on Nov 11
-      final utc = DateTime.parse('2026-11-10T23:45:00.000Z');
-      final ist = AppDateTimeFormat.toIst(utc);
-
-      expect(ist.year, equals(2026));
-      expect(ist.month, equals(11));
-      expect(ist.day, equals(11));
-      expect(ist.hour, equals(5));
-      expect(ist.minute, equals(15));
-
-      final dateStr = AppDateTimeFormat.formatDate(utc);
-      expect(dateStr, equals('11 Nov 2026'));
-
-      final timeStr = AppDateTimeFormat.formatTime(utc);
-      expect(timeStr, equals('05:15:00 IST'));
-    });
-
-    testWidgets(
-      '36. Verification page layout remains responsive at 1280, 900, and 600 px without overflow',
-      (tester) async {
-        final liveRepo = TestLiveAttendanceRepository(
-          initialRecords: [
-            LiveAttendanceRecord(
-              id: 'resp-rec-1',
-              studentId: 's1',
-              scannedAt: DateTime.parse('2026-11-10T08:00:00Z'),
-              eventType: LiveEventType.morningBoarding,
-              verificationStatus: LiveVerificationStatus.phonePresent,
-              phoneDistanceM: 10.0,
-              student: const LiveStudentInfo(
-                id: 's1',
-                studentCode: 'SGTU-2024-CSE-001',
-                studentName: 'Aarav Sharma',
-              ),
-            ),
-          ],
-        );
-
-        final authRepo = TestAdminAuthRepository(authorized: true);
-        final reviewRepo = TestAttendanceReviewRepository();
-
-        for (final width in [1280.0, 900.0, 600.0]) {
-          tester.view.physicalSize = Size(width, 800);
+      testWidgets(
+        '30. Verified Nearby (phone_present) is classified as No Review Needed and does not enter Pending Review',
+        (tester) async {
+          tester.view.physicalSize = const Size(1280, 900);
           tester.view.devicePixelRatio = 1.0;
+
+          final liveRepo = TestLiveAttendanceRepository(
+            initialRecords: [
+              LiveAttendanceRecord(
+                id: 'verified-rec-1',
+                studentId: 's1',
+                scannedAt: DateTime.parse('2026-11-10T08:00:00Z'),
+                eventType: LiveEventType.morningBoarding,
+                verificationStatus: LiveVerificationStatus.phonePresent,
+                phoneDistanceM: 8.5,
+                student: const LiveStudentInfo(
+                  id: 's1',
+                  studentCode: 'SGTU-2024-CSE-001',
+                  studentName: 'Aarav Sharma',
+                ),
+              ),
+            ],
+          );
+
+          final authRepo = TestAdminAuthRepository(authorized: true);
+          final reviewRepo = TestAttendanceReviewRepository();
 
           await tester.pumpWidget(
             MaterialApp(
@@ -2428,15 +2186,293 @@ void main() {
           );
           await tester.pumpAndSettle();
 
-          expect(find.text('Verification & Anti-Proxy Review'), findsOneWidget);
+          // Verified Nearby should NOT count as Pending Review
           expect(find.text('Pending Review'), findsOneWidget);
-          expect(tester.takeException(), isNull);
-        }
+          // The value for Pending Review KPI card is 0
+          expect(find.text('0'), findsAtLeastNWidgets(1));
 
-        addTearDown(tester.view.resetPhysicalSize);
-        liveRepo.dispose();
-        authRepo.dispose();
-      },
-    );
-  });
+          // Table shows "No Review Needed" badge and "View" action
+          expect(find.text('No Review Needed'), findsOneWidget);
+          expect(find.widgetWithText(TextButton, 'View'), findsOneWidget);
+          expect(find.widgetWithText(TextButton, 'Review'), findsNothing);
+
+          addTearDown(tester.view.resetPhysicalSize);
+          liveRepo.dispose();
+          authRepo.dispose();
+        },
+      );
+
+      testWidgets(
+        '31. Flagged records (phone_not_nearby) enter the review workflow',
+        (tester) async {
+          tester.view.physicalSize = const Size(1280, 900);
+          tester.view.devicePixelRatio = 1.0;
+
+          final liveRepo = TestLiveAttendanceRepository(
+            initialRecords: [
+              LiveAttendanceRecord(
+                id: 'flagged-rec-1',
+                studentId: 's2',
+                scannedAt: DateTime.parse('2026-11-10T08:10:00Z'),
+                eventType: LiveEventType.morningBoarding,
+                verificationStatus: LiveVerificationStatus.phoneNotNearby,
+                phoneDistanceM: 185.0,
+                student: const LiveStudentInfo(
+                  id: 's2',
+                  studentCode: 'SGTU-2024-ECE-002',
+                  studentName: 'Ananya Gupta',
+                ),
+              ),
+            ],
+          );
+
+          final authRepo = TestAdminAuthRepository(authorized: true);
+          final reviewRepo = TestAttendanceReviewRepository();
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: VerificationPage(
+                liveAttendanceRepository: liveRepo,
+                authRepository: authRepo,
+                reviewRepository: reviewRepo,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Counted in Pending Review
+          expect(find.text('Pending Review'), findsAtLeastNWidgets(1));
+          expect(find.text('1'), findsAtLeastNWidgets(1));
+
+          // Table shows "Review" action
+          expect(find.widgetWithText(TextButton, 'Review'), findsOneWidget);
+
+          addTearDown(tester.view.resetPhysicalSize);
+          liveRepo.dispose();
+          authRepo.dispose();
+        },
+      );
+
+      testWidgets(
+        '32. Administrative review persistence updates review status and counters',
+        (tester) async {
+          tester.view.physicalSize = const Size(1280, 900);
+          tester.view.devicePixelRatio = 1.0;
+
+          final liveRepo = TestLiveAttendanceRepository(
+            initialRecords: [
+              LiveAttendanceRecord(
+                id: 'flagged-rec-1',
+                studentId: 's2',
+                scannedAt: DateTime.parse('2026-11-10T08:10:00Z'),
+                eventType: LiveEventType.morningBoarding,
+                verificationStatus: LiveVerificationStatus.phoneNotNearby,
+                phoneDistanceM: 185.0,
+                student: const LiveStudentInfo(
+                  id: 's2',
+                  studentCode: 'SGTU-2024-ECE-002',
+                  studentName: 'Ananya Gupta',
+                ),
+              ),
+            ],
+          );
+
+          final authRepo = TestAdminAuthRepository(authorized: true);
+          final reviewRepo = TestAttendanceReviewRepository();
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: VerificationPage(
+                liveAttendanceRepository: liveRepo,
+                authRepository: authRepo,
+                reviewRepository: reviewRepo,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Tap Review to open drawer
+          await tester.ensureVisible(find.widgetWithText(TextButton, 'Review'));
+          await tester.tap(find.widgetWithText(TextButton, 'Review'));
+          await tester.pumpAndSettle();
+
+          // Enter review notes
+          await tester.enterText(
+            find.byType(TextFormField).first,
+            'Contacted transport supervisor. False alarm, student was seated in rear.',
+          );
+
+          // Tap Save Review
+          await tester.tap(find.widgetWithText(ElevatedButton, 'Save Review'));
+          await tester.pumpAndSettle();
+
+          // Review is saved in repository!
+          expect(reviewRepo.reviews.length, equals(1));
+          expect(
+            reviewRepo.reviews.first.attendanceId,
+            equals('flagged-rec-1'),
+          );
+
+          addTearDown(tester.view.resetPhysicalSize);
+          liveRepo.dispose();
+          authRepo.dispose();
+        },
+      );
+
+      testWidgets(
+        '33. Blocked review persistence displays migration notice without false success',
+        (tester) async {
+          tester.view.physicalSize = const Size(1280, 900);
+          tester.view.devicePixelRatio = 1.0;
+
+          final liveRepo = TestLiveAttendanceRepository(
+            initialRecords: [
+              LiveAttendanceRecord(
+                id: 'flagged-rec-1',
+                studentId: 's2',
+                scannedAt: DateTime.parse('2026-11-10T08:10:00Z'),
+                eventType: LiveEventType.morningBoarding,
+                verificationStatus: LiveVerificationStatus.phoneNotNearby,
+                phoneDistanceM: 185.0,
+                student: const LiveStudentInfo(
+                  id: 's2',
+                  studentCode: 'SGTU-2024-ECE-002',
+                  studentName: 'Ananya Gupta',
+                ),
+              ),
+            ],
+          );
+
+          final authRepo = TestAdminAuthRepository(authorized: true);
+          final reviewRepo = TestAttendanceReviewRepository(
+            persistenceAvailable: false,
+          );
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: VerificationPage(
+                liveAttendanceRepository: liveRepo,
+                authRepository: authRepo,
+                reviewRepository: reviewRepo,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Open drawer
+          await tester.ensureVisible(find.widgetWithText(TextButton, 'Review'));
+          await tester.tap(find.widgetWithText(TextButton, 'Review'));
+          await tester.pumpAndSettle();
+
+          // Enter notes and save
+          await tester.enterText(
+            find.byType(TextFormField).first,
+            'Administrative review note.',
+          );
+          await tester.tap(find.widgetWithText(ElevatedButton, 'Save Review'));
+          await tester.pumpAndSettle();
+
+          // Drawer stays open displaying migration notice without claiming false success
+          expect(
+            find.text(
+              'Database persistence blocked: Table "attendance_reviews" does not exist in Supabase yet. Migration script "supabase/migrations/20261110_create_attendance_reviews.sql" is prepared awaiting administrator approval.',
+            ),
+            findsOneWidget,
+          );
+          expect(reviewRepo.reviews.isEmpty, isTrue);
+
+          addTearDown(tester.view.resetPhysicalSize);
+          liveRepo.dispose();
+          authRepo.dispose();
+        },
+      );
+
+      test('34. Date/Time formatting converts UTC to Asia/Kolkata (IST)', () {
+        final utc = DateTime.parse('2026-11-10T08:14:02.000Z');
+        // 08:14:02 UTC + 05:30 = 13:44:02 IST
+        final timeStr = AppDateTimeFormat.formatTime(utc);
+        expect(timeStr, equals('13:44:02 IST'));
+
+        final dateStr = AppDateTimeFormat.formatDate(utc);
+        expect(dateStr, equals('10 Nov 2026'));
+
+        final fullStr = AppDateTimeFormat.formatDateTime(utc);
+        expect(fullStr, equals('10 Nov 2026, 13:44:02 IST'));
+      });
+
+      test(
+        '35. Midnight boundary timestamp conversion rolls over date accurately',
+        () {
+          // 23:45 UTC on Nov 10 rolls over to 05:15 IST on Nov 11
+          final utc = DateTime.parse('2026-11-10T23:45:00.000Z');
+          final ist = AppDateTimeFormat.toIst(utc);
+
+          expect(ist.year, equals(2026));
+          expect(ist.month, equals(11));
+          expect(ist.day, equals(11));
+          expect(ist.hour, equals(5));
+          expect(ist.minute, equals(15));
+
+          final dateStr = AppDateTimeFormat.formatDate(utc);
+          expect(dateStr, equals('11 Nov 2026'));
+
+          final timeStr = AppDateTimeFormat.formatTime(utc);
+          expect(timeStr, equals('05:15:00 IST'));
+        },
+      );
+
+      testWidgets(
+        '36. Verification page layout remains responsive at 1280, 900, and 600 px without overflow',
+        (tester) async {
+          final liveRepo = TestLiveAttendanceRepository(
+            initialRecords: [
+              LiveAttendanceRecord(
+                id: 'resp-rec-1',
+                studentId: 's1',
+                scannedAt: DateTime.parse('2026-11-10T08:00:00Z'),
+                eventType: LiveEventType.morningBoarding,
+                verificationStatus: LiveVerificationStatus.phonePresent,
+                phoneDistanceM: 10.0,
+                student: const LiveStudentInfo(
+                  id: 's1',
+                  studentCode: 'SGTU-2024-CSE-001',
+                  studentName: 'Aarav Sharma',
+                ),
+              ),
+            ],
+          );
+
+          final authRepo = TestAdminAuthRepository(authorized: true);
+          final reviewRepo = TestAttendanceReviewRepository();
+
+          for (final width in [1280.0, 900.0, 600.0]) {
+            tester.view.physicalSize = Size(width, 800);
+            tester.view.devicePixelRatio = 1.0;
+
+            await tester.pumpWidget(
+              MaterialApp(
+                home: VerificationPage(
+                  liveAttendanceRepository: liveRepo,
+                  authRepository: authRepo,
+                  reviewRepository: reviewRepo,
+                ),
+              ),
+            );
+            await tester.pumpAndSettle();
+
+            expect(
+              find.text('Verification & Anti-Proxy Review'),
+              findsOneWidget,
+            );
+            expect(find.text('Pending Review'), findsOneWidget);
+            expect(tester.takeException(), isNull);
+          }
+
+          addTearDown(tester.view.resetPhysicalSize);
+          liveRepo.dispose();
+          authRepo.dispose();
+        },
+      );
+    },
+  );
 }

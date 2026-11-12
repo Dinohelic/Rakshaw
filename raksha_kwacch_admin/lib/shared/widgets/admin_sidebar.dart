@@ -2,10 +2,71 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_colors.dart';
+import '../../core/auth/admin_auth_repository.dart';
+import '../../core/auth/admin_auth_state.dart';
+import '../../core/auth/supabase_admin_auth_repository.dart';
 import '../../core/constants/app_constants.dart';
+import '../../features/attendance/data/supabase_live_attendance_repository.dart';
 
 class AdminSidebar extends StatelessWidget {
-  const AdminSidebar({super.key});
+  final AdminAuthRepository? authRepository;
+
+  const AdminSidebar({super.key, this.authRepository});
+
+  AdminAuthRepository get _authRepo =>
+      authRepository ?? SupabaseAdminAuthRepository.shared;
+
+  static String getInitials(String? email) {
+    if (email == null || email.trim().isEmpty) return 'AD';
+    final userPart = email.split('@').first.trim();
+    if (userPart.contains('.')) {
+      final parts = userPart.split('.');
+      if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+    }
+    if (userPart.length >= 2) {
+      return userPart.substring(0, 2).toUpperCase();
+    }
+    return userPart.toUpperCase();
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        title: const Text(
+          'Sign Out',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to sign out of the Raksha Kawach Admin Portal? Live telemetry and Realtime streams will be terminated.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brandRed,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      SupabaseLiveAttendanceRepository.shared.clearCache();
+      await SupabaseLiveAttendanceRepository.shared.dispose();
+      await _authRepo.signOut();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +80,7 @@ class AdminSidebar extends StatelessWidget {
           children: [
             // Logo Header
             Container(
-              height: 70, // Slightly more than 64 to avoid overflow if text is slightly larger in tests
+              height: 70,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: const BoxDecoration(
                 border: Border(bottom: BorderSide(color: AppColors.border)),
@@ -123,69 +184,107 @@ class AdminSidebar extends StatelessWidget {
               ),
             ),
             // Bottom Profile Card
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: AppColors.border)),
-              ),
-              child: InkWell(
-                onTap: () {},
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          border: Border.all(color: AppColors.border),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'RS',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Rajesh Sharma',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textDark,
-                              ),
-                            ),
-                            Text(
-                              'Super Admin',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSlate,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(
-                        Icons.logout,
-                        size: 18,
-                        color: AppColors.textSlate,
-                      ),
-                    ],
+            StreamBuilder<AdminAuthState>(
+              stream: _authRepo.authStateChanges,
+              initialData: _authRepo.currentState,
+              builder: (context, snapshot) {
+                final email = _authRepo.currentAdminEmail;
+                final initials = getInitials(email);
+                final displayEmail = email ?? 'Administrator';
+
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: AppColors.border)),
                   ),
-                ),
-              ),
+                  child: InkWell(
+                    onTap: () => _handleLogout(context),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: AppColors.brandLightRed,
+                              border: Border.all(
+                                color: AppColors.brandBorderRed,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              initials,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.brandRed,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  displayEmail,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF10B981),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Flexible(
+                                      child: Text(
+                                        'Administrator',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textSlate,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.logout,
+                              size: 18,
+                              color: AppColors.textSlate,
+                            ),
+                            tooltip: 'Sign Out',
+                            onPressed: () => _handleLogout(context),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),

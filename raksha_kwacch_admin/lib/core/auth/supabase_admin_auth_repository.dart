@@ -13,11 +13,16 @@ import 'admin_auth_state.dart';
 /// Authenticates via `client.auth.signInWithPassword` and enforces administrator
 /// role verification against the verified `admin_users` table with self-membership SELECT.
 class SupabaseAdminAuthRepository implements AdminAuthRepository {
-  static SupabaseAdminAuthRepository? _sharedInstance;
+  static AdminAuthRepository? _sharedInstance;
 
   /// Global singleton instance ensuring administrative sessions survive navigation.
-  static SupabaseAdminAuthRepository get shared =>
+  static AdminAuthRepository get shared =>
       _sharedInstance ??= SupabaseAdminAuthRepository();
+
+  /// Overrides the shared instance (useful for testing or custom configuration).
+  static set shared(AdminAuthRepository repo) {
+    _sharedInstance = repo;
+  }
 
   /// Reset singleton instance for testing environments.
   static void resetShared() {

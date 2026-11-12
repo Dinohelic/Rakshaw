@@ -1,5 +1,7 @@
 library;
 
+import '../../../core/utils/app_date_time_format.dart';
+
 /// Domain models representing the actual hardware-verified Supabase schema
 /// for Raksha Kawach live attendance telemetry.
 
@@ -244,4 +246,87 @@ class LiveAttendanceRecord {
       student: student ?? this.student,
     );
   }
+}
+
+/// Aggregated real-time metrics for the Overview Dashboard.
+class LiveDashboardMetrics {
+  final int totalToday;
+  final int morningBoardingsToday;
+  final int eveningBoardingsToday;
+  final int deboardingsToday;
+  final int verifiedNearbyToday;
+  final int flaggedToday;
+  final int pendingReviewToday;
+
+  const LiveDashboardMetrics({
+    this.totalToday = 0,
+    this.morningBoardingsToday = 0,
+    this.eveningBoardingsToday = 0,
+    this.deboardingsToday = 0,
+    this.verifiedNearbyToday = 0,
+    this.flaggedToday = 0,
+    this.pendingReviewToday = 0,
+  });
+
+  factory LiveDashboardMetrics.fromRecords(
+    List<LiveAttendanceRecord> records, {
+    DateTime? referenceDay,
+  }) {
+    final todayRecords = records.where((r) {
+      return AppDateTimeFormat.isSameIstDay(r.scannedAt, referenceDay);
+    }).toList();
+
+    int morning = 0;
+    int evening = 0;
+    int deboarding = 0;
+    int verifiedNearby = 0;
+    int flagged = 0;
+
+    for (final r in todayRecords) {
+      switch (r.eventType) {
+        case LiveEventType.morningBoarding:
+          morning++;
+          break;
+        case LiveEventType.eveningBoarding:
+          evening++;
+          break;
+        case LiveEventType.deboarding:
+          deboarding++;
+          break;
+      }
+
+      if (r.verificationStatus == LiveVerificationStatus.phonePresent) {
+        verifiedNearby++;
+      } else {
+        flagged++;
+      }
+    }
+
+    return LiveDashboardMetrics(
+      totalToday: todayRecords.length,
+      morningBoardingsToday: morning,
+      eveningBoardingsToday: evening,
+      deboardingsToday: deboarding,
+      verifiedNearbyToday: verifiedNearby,
+      flaggedToday: flagged,
+      pendingReviewToday: flagged,
+    );
+  }
+}
+
+/// Represents an ESP32-S3 hardware unit observed through attendance scans.
+class ObservedHardwareUnit {
+  final String deviceId;
+  final DateTime lastSeenAt;
+  final String lastEventType;
+  final double? lastLatitude;
+  final double? lastLongitude;
+
+  const ObservedHardwareUnit({
+    required this.deviceId,
+    required this.lastSeenAt,
+    required this.lastEventType,
+    this.lastLatitude,
+    this.lastLongitude,
+  });
 }

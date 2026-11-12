@@ -1,36 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/auth/admin_auth_repository.dart';
+import '../../../../core/utils/app_date_time_format.dart';
+import '../../../../shared/widgets/admin_sidebar.dart';
+import '../../../attendance/domain/live_attendance_models.dart';
+import '../../../attendance/domain/live_attendance_repository.dart';
+import '../dashboard_controller.dart';
 
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+class DashboardPage extends StatefulWidget {
+  final LiveAttendanceRepository? liveAttendanceRepository;
+  final AdminAuthRepository? authRepository;
+
+  const DashboardPage({
+    super.key,
+    this.liveAttendanceRepository,
+    this.authRepository,
+  });
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  late final DashboardController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = DashboardController(
+      liveAttendanceRepository: widget.liveAttendanceRepository,
+      authRepository: widget.authRepository,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // KPI Cards
-          const _KpiSection(),
-          const SizedBox(height: 24),
-          // Operational Section (Fleet Status & Needs Attention)
-          const _OperationalSection(),
-          const SizedBox(height: 24),
-          // Recent Events Table
-          const _RecentEventsSection(),
-        ],
-      ),
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, _) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top KPI Cards Section
+              _KpiSection(controller: _controller),
+              const SizedBox(height: 24),
+
+              // Operational Section (Hardware Activity & Needs Attention)
+              _OperationalSection(controller: _controller),
+              const SizedBox(height: 24),
+
+              // Recent Events Table Section
+              _RecentEventsSection(controller: _controller),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
 class _KpiSection extends StatelessWidget {
-  const _KpiSection();
+  final DashboardController controller;
+
+  const _KpiSection({required this.controller});
 
   @override
   Widget build(BuildContext context) {
+    final metrics = controller.metrics;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         int crossAxisCount = 4;
@@ -47,30 +94,31 @@ class _KpiSection extends StatelessWidget {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           childAspectRatio: constraints.maxWidth < 640 ? 3.0 : 2.0,
-          children: const [
+          children: [
             _KpiCard(
-              title: 'Active Buses',
-              value: '8 / 12',
-              subtitle: 'Reporting GPS',
-              icon: Icons.directions_bus_outlined,
-            ),
-            _KpiCard(
-              title: 'Recorded Boardings',
-              value: '342',
-              subtitle: 'Today',
+              title: 'Total Swipes Today',
+              value: '${metrics.totalToday}',
+              subtitle: 'Recorded today (IST)',
               icon: Icons.contactless_outlined,
             ),
             _KpiCard(
-              title: 'Flagged Events',
-              value: '7',
-              subtitle: 'Needs review',
-              icon: Icons.flag_outlined,
+              title: 'Morning Boardings',
+              value: '${metrics.morningBoardingsToday}',
+              subtitle: 'Today\'s pick-ups',
+              icon: Icons.wb_sunny_outlined,
             ),
             _KpiCard(
-              title: 'Open Alerts',
-              value: '3',
-              subtitle: 'Requires attention',
-              icon: Icons.error_outline,
+              title: 'Evening Boardings',
+              value: '${metrics.eveningBoardingsToday}',
+              subtitle: 'Today\'s return drops',
+              icon: Icons.nights_stay_outlined,
+            ),
+            _KpiCard(
+              title: 'Flagged for Review',
+              value: '${metrics.flaggedToday}',
+              subtitle: 'Phone not nearby / uncertain',
+              icon: Icons.flag_outlined,
+              isFlaggedAlert: metrics.flaggedToday > 0,
             ),
           ],
         );
@@ -84,12 +132,14 @@ class _KpiCard extends StatelessWidget {
   final String value;
   final String subtitle;
   final IconData icon;
+  final bool isFlaggedAlert;
 
   const _KpiCard({
     required this.title,
     required this.value,
     required this.subtitle,
     required this.icon,
+    this.isFlaggedAlert = false,
   });
 
   @override
@@ -99,7 +149,9 @@ class _KpiCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: isFlaggedAlert ? AppColors.brandBorderRed : AppColors.border,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(5),
@@ -123,7 +175,13 @@ class _KpiCard extends StatelessWidget {
                   color: AppColors.textSlate,
                 ),
               ),
-              Icon(icon, size: 20, color: AppColors.textSlate),
+              Icon(
+                icon,
+                size: 20,
+                color: isFlaggedAlert
+                    ? AppColors.brandRed
+                    : AppColors.textSlate,
+              ),
             ],
           ),
           Column(
@@ -131,10 +189,12 @@ class _KpiCard extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: isFlaggedAlert
+                      ? AppColors.brandRed
+                      : AppColors.textDark,
                   letterSpacing: -0.5,
                 ),
               ),
@@ -155,27 +215,35 @@ class _KpiCard extends StatelessWidget {
 }
 
 class _OperationalSection extends StatelessWidget {
-  const _OperationalSection();
+  final DashboardController controller;
+
+  const _OperationalSection({required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 1024) {
-          return const Column(
+          return Column(
             children: [
-              _FleetStatusCard(),
-              SizedBox(height: 24),
-              _NeedsAttentionCard(),
+              _HardwareActivityCard(controller: controller),
+              const SizedBox(height: 24),
+              _NeedsAttentionCard(controller: controller),
             ],
           );
         }
-        return const Row(
+        return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(flex: 7, child: _FleetStatusCard()),
-            SizedBox(width: 24),
-            Expanded(flex: 5, child: _NeedsAttentionCard()),
+            Expanded(
+              flex: 7,
+              child: _HardwareActivityCard(controller: controller),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              flex: 5,
+              child: _NeedsAttentionCard(controller: controller),
+            ),
           ],
         );
       },
@@ -183,11 +251,15 @@ class _OperationalSection extends StatelessWidget {
   }
 }
 
-class _FleetStatusCard extends StatelessWidget {
-  const _FleetStatusCard();
+class _HardwareActivityCard extends StatelessWidget {
+  final DashboardController controller;
+
+  const _HardwareActivityCard({required this.controller});
 
   @override
   Widget build(BuildContext context) {
+    final units = controller.observedHardwareUnits;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -195,24 +267,39 @@ class _FleetStatusCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Fleet Status',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Last Hardware Activity',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      Text(
+                        'ESP32-S3 units observed via attendance telemetry',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSlate,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => context.go('/attendance'),
                   child: const Text(
-                    'View Fleet',
+                    'View Attendance',
                     style: TextStyle(fontSize: 12, color: AppColors.textSlate),
                   ),
                 ),
@@ -220,159 +307,87 @@ class _FleetStatusCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          _FleetStatusRow(
-            id: 'BUS-104',
-            model: 'Tata Marcopolo',
-            routeId: 'RT-04',
-            routeName: 'North Campus',
-            status: 'Live',
-            time: '12s ago',
-            statusColor: AppColors.statusGreenText,
-            statusBg: AppColors.statusGreenBg,
-            statusBorder: AppColors.statusGreenBorder,
-          ),
-          const Divider(height: 1),
-          _FleetStatusRow(
-            id: 'BUS-109',
-            model: 'Tata Starbus',
-            routeId: 'RT-11',
-            routeName: 'Dwarka Express',
-            status: 'Live',
-            time: '34s ago',
-            statusColor: AppColors.statusGreenText,
-            statusBg: AppColors.statusGreenBg,
-            statusBorder: AppColors.statusGreenBorder,
-          ),
-          const Divider(height: 1),
-          _FleetStatusRow(
-            id: 'BUS-115',
-            model: 'Eicher Skyline',
-            routeId: 'RT-02',
-            routeName: 'South Ext. Loop',
-            status: 'Stale',
-            time: '14m ago',
-            statusColor: AppColors.statusYellowText,
-            statusBg: AppColors.statusYellowBg,
-            statusBorder: AppColors.statusYellowBorder,
-          ),
-          const Divider(height: 1),
-          _FleetStatusRow(
-            id: 'BUS-102',
-            model: 'Force Traveller',
-            routeId: 'RT-08',
-            routeName: 'Noida Corridor',
-            status: 'Unavailable',
-            time: '1h 45m ago',
-            statusColor: AppColors.statusRedText,
-            statusBg: AppColors.statusRedBg,
-            statusBorder: AppColors.statusRedBorder,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FleetStatusRow extends StatelessWidget {
-  final String id;
-  final String model;
-  final String routeId;
-  final String routeName;
-  final String status;
-  final String time;
-  final Color statusColor;
-  final Color statusBg;
-  final Color statusBorder;
-
-  const _FleetStatusRow({
-    required this.id,
-    required this.model,
-    required this.routeId,
-    required this.routeName,
-    required this.status,
-    required this.time,
-    required this.statusColor,
-    required this.statusBg,
-    required this.statusBorder,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  id,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                Text(
-                  model,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSlate,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  routeId,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                Text(
-                  routeName,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSlate,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: statusBg,
-                border: Border.all(color: statusBorder),
-                borderRadius: BorderRadius.circular(99),
-              ),
-              child: Text(
-                status,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: statusColor,
+          if (units.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+              child: Center(
+                child: Text(
+                  'No hardware devices observed yet. Scans from ESP32-S3 units will appear here automatically.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: AppColors.textSlate),
                 ),
               ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: units.take(4).length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final unit = units[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              unit.deviceId,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            Text(
+                              unit.lastEventType,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSlate,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFECFDF5),
+                          border: Border.all(color: const Color(0xFFA7F3D0)),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: const Text(
+                          'Last Seen',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF065F46),
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        AppDateTimeFormat.formatTime(unit.lastSeenAt),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSlate,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          ),
-          const Spacer(),
-          Text(
-            time,
-            style: const TextStyle(fontSize: 12, color: AppColors.textSlate),
-          ),
         ],
       ),
     );
@@ -380,10 +395,14 @@ class _FleetStatusRow extends StatelessWidget {
 }
 
 class _NeedsAttentionCard extends StatelessWidget {
-  const _NeedsAttentionCard();
+  final DashboardController controller;
+
+  const _NeedsAttentionCard({required this.controller});
 
   @override
   Widget build(BuildContext context) {
+    final items = controller.needsAttentionList;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -391,6 +410,7 @@ class _NeedsAttentionCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -411,17 +431,25 @@ class _NeedsAttentionCard extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.background,
+                    color: items.isNotEmpty
+                        ? AppColors.brandLightRed
+                        : AppColors.background,
                     borderRadius: BorderRadius.circular(99),
                   ),
-                  child: const Text(
-                    '3',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSlate),
+                  child: Text(
+                    '${items.length}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: items.isNotEmpty
+                          ? AppColors.brandRed
+                          : AppColors.textSlate,
+                    ),
                   ),
                 ),
                 const Spacer(),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => context.go('/verification'),
                   child: const Text(
                     'View all',
                     style: TextStyle(fontSize: 12, color: AppColors.textSlate),
@@ -431,158 +459,135 @@ class _NeedsAttentionCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          const _AttentionItem(
-            icon: Icons.priority_high,
-            iconColor: AppColors.statusYellowText,
-            title: 'RFID verification flagged',
-            description:
-                'Student #RK-8842 scanned on BUS-104 (scheduled Route 07)',
-            time: '8:14 AM',
-            actionText: 'Review',
-            priority: 'High',
-            priorityBg: AppColors.statusYellowBg,
-            priorityText: AppColors.statusYellowText,
-            priorityBorder: AppColors.statusYellowBorder,
-          ),
-          const Divider(height: 1),
-          const _AttentionItem(
-            icon: Icons.location_off_outlined,
-            iconColor: AppColors.statusRedText,
-            title: 'Bus GPS unavailable',
-            description:
-                'BUS-102 GNSS signal lost near Sector 62. Caching locally.',
-            time: '7:55 AM',
-            actionText: 'Inspect',
-            priority: 'Critical',
-            priorityBg: AppColors.statusRedBg,
-            priorityText: AppColors.statusRedText,
-            priorityBorder: AppColors.statusRedBorder,
-          ),
-          const Divider(height: 1),
-          const _AttentionItem(
-            icon: Icons.support_agent_outlined,
-            iconColor: AppColors.textSlate,
-            title: 'Incorrect scan reported',
-            description:
-                'Duplicate tap reported for St. Xavier\'s stop (RFID #8839)',
-            time: '25m ago',
-            actionText: 'Resolve',
-            priority: 'Medium',
-            priorityBg: AppColors.background,
-            priorityText: AppColors.textSlateDark,
-            priorityBorder: AppColors.border,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AttentionItem extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String description;
-  final String time;
-  final String actionText;
-  final String priority;
-  final Color priorityBg;
-  final Color priorityText;
-  final Color priorityBorder;
-
-  const _AttentionItem({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.description,
-    required this.time,
-    required this.actionText,
-    required this.priority,
-    required this.priorityBg,
-    required this.priorityText,
-    required this.priorityBorder,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(icon, size: 16, color: iconColor),
-                  const SizedBox(width: 8),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+          if (items.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+              child: Center(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      color: Color(0xFF10B981),
+                      size: 18,
                     ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: priorityBg,
-                  border: Border.all(color: priorityBorder),
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: Text(
-                  priority,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: priorityText,
-                  ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'All recent scans verified nearby. No pending proxy flags.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSlate,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSlate,
-              height: 1.4,
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.take(3).length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final rec = items[index];
+                final student = rec.student;
+                final studentName = student?.studentName ?? 'Student';
+                final studentCode = student?.studentCode ?? rec.studentId;
+
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.priority_high,
+                                size: 16,
+                                color: AppColors.brandRed,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                studentName,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.brandLightRed,
+                              border: Border.all(
+                                color: AppColors.brandBorderRed,
+                              ),
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                            child: const Text(
+                              'Flagged',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.brandRed,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${rec.verificationStatus.label} • #$studentCode • Unit: ${rec.deviceId ?? "ESP32"}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSlate,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            AppDateTimeFormat.formatTime(rec.scannedAt),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSlate,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => context.go('/verification'),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text(
+                              'Review',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.brandRed,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                time,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textSlate,
-                ),
-              ),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  actionText,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.brandRed,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -590,10 +595,14 @@ class _AttentionItem extends StatelessWidget {
 }
 
 class _RecentEventsSection extends StatelessWidget {
-  const _RecentEventsSection();
+  final DashboardController controller;
+
+  const _RecentEventsSection({required this.controller});
 
   @override
   Widget build(BuildContext context) {
+    final records = controller.recentRecords;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -607,19 +616,59 @@ class _RecentEventsSection extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Recent Recorded Events',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textDark,
-                        ),
+                      Wrap(
+                        spacing: 10,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const Text(
+                            'Recent Recorded Events',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          if (controller.isRealtimeActive)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFECFDF5),
+                                border: Border.all(
+                                  color: const Color(0xFFA7F3D0),
+                                ),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.circle,
+                                    size: 6,
+                                    color: Color(0xFF10B981),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Realtime',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF065F46),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
-                      Text(
+                      const SizedBox(height: 2),
+                      const Text(
                         'Real-time attendance swipe stream across active transit units.',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -632,7 +681,7 @@ class _RecentEventsSection extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => context.go('/attendance'),
                   child: const Text(
                     'View all events',
                     style: TextStyle(fontSize: 12, color: AppColors.textSlate),
@@ -642,51 +691,201 @@ class _RecentEventsSection extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          Container(
-            color: AppColors.background,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-            child: const Row(
-              children: [
-                Expanded(flex: 3, child: _TableHeaderText('Student ID & Name')),
-                Expanded(flex: 2, child: _TableHeaderText('Bus')),
-                Expanded(flex: 2, child: _TableHeaderText('Event Type')),
-                Expanded(flex: 2, child: _TableHeaderText('Time')),
-                Expanded(flex: 2, child: _TableHeaderText('Verification')),
-                Expanded(
-                  flex: 1,
-                  child: _TableHeaderText('Action', textAlign: TextAlign.right),
+          if (records.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+              child: Center(
+                child: Text(
+                  'No attendance records available. Scans from ESP32-S3 hardware will appear here live.',
+                  style: TextStyle(fontSize: 13, color: AppColors.textSlate),
                 ),
-              ],
+              ),
+            )
+          else
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: DataTable(
+                      headingRowColor: const WidgetStatePropertyAll(
+                        AppColors.background,
+                      ),
+                      headingRowHeight: 40,
+                      dataRowMinHeight: 52,
+                      dataRowMaxHeight: 64,
+                      horizontalMargin: 24,
+                      columnSpacing: 20,
+                      columns: const [
+                        DataColumn(
+                          label: _TableHeaderText('Student ID & Name'),
+                        ),
+                        DataColumn(label: _TableHeaderText('Device ID')),
+                        DataColumn(label: _TableHeaderText('Event Type')),
+                        DataColumn(label: _TableHeaderText('Time (IST)')),
+                        DataColumn(label: _TableHeaderText('Verification')),
+                        DataColumn(
+                          label: _TableHeaderText(
+                            'Action',
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ],
+                      rows: records.map((rec) {
+                        final student = rec.student;
+                        final studentName =
+                            student?.studentName ?? 'Unassigned Card';
+                        final studentCode =
+                            student?.studentCode ?? rec.studentId;
+                        final initials = AdminSidebar.getInitials(studentName);
+                        final isFlagged =
+                            rec.verificationStatus !=
+                            LiveVerificationStatus.phonePresent;
+
+                        return DataRow(
+                          cells: [
+                            DataCell(
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 28,
+                                    height: 28,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.background,
+                                      border: Border.all(
+                                        color: AppColors.border,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      initials,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textDark,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        studentName,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.textDark,
+                                        ),
+                                      ),
+                                      Text(
+                                        studentCode,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textSlate,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            DataCell(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    rec.deviceId ?? 'ESP32-S3',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textDark,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Hardware Unit',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSlate,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.statusBlueBg,
+                                  border: Border.all(
+                                    color: AppColors.statusBlueBorder,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  rec.eventType.label,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.statusBlueText,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                AppDateTimeFormat.formatTime12Hour(
+                                  rec.scannedAt,
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSlate,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              _VerificationBadge(
+                                status: rec.verificationStatus,
+                              ),
+                            ),
+                            DataCell(
+                              TextButton(
+                                onPressed: () {
+                                  if (isFlagged) {
+                                    context.go('/verification');
+                                  } else {
+                                    context.go('/attendance');
+                                  }
+                                },
+                                child: Text(
+                                  isFlagged ? 'Review' : 'View',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: isFlagged
+                                        ? AppColors.brandRed
+                                        : AppColors.textSlate,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-          const Divider(height: 1),
-          _EventRow(
-            initials: 'AS',
-            name: 'Aarav Sharma',
-            id: 'STU-4819',
-            bus: 'BUS-104',
-            route: 'Route 04',
-            eventType: 'Boarding',
-            time: '08:24:12 AM',
-            status: 'Verified',
-            statusColor: AppColors.statusGreenText,
-            statusBg: AppColors.statusGreenBg,
-            statusBorder: AppColors.statusGreenBorder,
-          ),
-          const Divider(height: 1),
-          _EventRow(
-            initials: 'MK',
-            name: 'Meera Kapoor',
-            id: 'STU-4822',
-            bus: 'BUS-109',
-            route: 'Route 11',
-            eventType: 'Boarding',
-            time: '08:26:05 AM',
-            status: 'Verified',
-            statusColor: AppColors.statusGreenText,
-            statusBg: AppColors.statusGreenBg,
-            statusBorder: AppColors.statusGreenBorder,
-          ),
         ],
       ),
     );
@@ -714,175 +913,54 @@ class _TableHeaderText extends StatelessWidget {
   }
 }
 
-class _EventRow extends StatelessWidget {
-  final String initials;
-  final String name;
-  final String id;
-  final String bus;
-  final String route;
-  final String eventType;
-  final String time;
-  final String status;
-  final Color statusColor;
-  final Color statusBg;
-  final Color statusBorder;
+class _VerificationBadge extends StatelessWidget {
+  final LiveVerificationStatus status;
 
-  const _EventRow({
-    required this.initials,
-    required this.name,
-    required this.id,
-    required this.bus,
-    required this.route,
-    required this.eventType,
-    required this.time,
-    required this.status,
-    required this.statusColor,
-    required this.statusBg,
-    required this.statusBorder,
-  });
+  const _VerificationBadge({required this.status});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    border: Border.all(color: AppColors.border),
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textDark,
-                        ),
-                      ),
-                      Text(
-                        id,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSlate,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  bus,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                Text(
-                  route,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSlate,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Container(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.statusBlueBg,
-                  border: Border.all(color: AppColors.statusBlueBorder),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Boarding',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.statusBlueText,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              time,
-              style: const TextStyle(fontSize: 12, color: AppColors.textSlate),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Container(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: statusBg,
-                  border: Border.all(color: statusBorder),
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: statusColor,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: TextButton(
-              onPressed: () {},
-              child: const Text(
-                'View',
-                textAlign: TextAlign.right,
-                style: TextStyle(fontSize: 12, color: AppColors.textSlate),
-              ),
-            ),
-          ),
-        ],
+    Color bg = const Color(0xFFF1F5F9);
+    Color border = const Color(0xFFCBD5E1);
+    Color text = const Color(0xFF64748B);
+
+    switch (status) {
+      case LiveVerificationStatus.phonePresent:
+        bg = const Color(0xFFECFDF5);
+        border = const Color(0xFFA7F3D0);
+        text = const Color(0xFF065F46);
+        break;
+      case LiveVerificationStatus.phoneNotNearby:
+        bg = AppColors.brandLightRed;
+        border = AppColors.brandBorderRed;
+        text = AppColors.brandRed;
+        break;
+      case LiveVerificationStatus.locationUnavailable:
+        bg = const Color(0xFFFFFBEB);
+        border = const Color(0xFFFDE68A);
+        text = const Color(0xFFD97706);
+        break;
+      case LiveVerificationStatus.verificationUncertain:
+        bg = const Color(0xFFF1F5F9);
+        border = const Color(0xFFCBD5E1);
+        text = const Color(0xFF64748B);
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border.all(color: border),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Text(
+        status.label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: text,
+        ),
       ),
     );
   }

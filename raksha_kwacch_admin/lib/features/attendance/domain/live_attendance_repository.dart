@@ -14,6 +14,15 @@ abstract class LiveAttendanceRepository {
   /// Subscribes to real-time additions and updates from the live `attendance` table.
   Stream<List<LiveAttendanceRecord>> streamRecentAttendance({int limit = 100});
 
+  /// Fetches attendance records for a specific IST calendar day (defaults to today).
+  Future<List<LiveAttendanceRecord>> getAttendanceForIstDay({
+    DateTime? istDay,
+    int limit = 1000,
+  });
+
+  /// Clears in-memory cached attendance telemetry.
+  void clearCache() {}
+
   /// Disposes active Realtime subscriptions and resources.
   Future<void> dispose();
 }

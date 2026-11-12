@@ -127,4 +127,25 @@ class AppDateTimeFormat {
         '${ist.day.toString().padLeft(2, '0')}/${ist.month.toString().padLeft(2, '0')}';
     return '$date $time';
   }
+
+  /// Returns the start of the specified IST day (defaults to today) converted to UTC.
+  static DateTime getIstDayStartInUtc([DateTime? istDay]) {
+    final ist = toIst(istDay ?? DateTime.now());
+    final istMidnight = DateTime.utc(ist.year, ist.month, ist.day);
+    return istMidnight.subtract(istOffset);
+  }
+
+  /// Returns the end of the specified IST day (defaults to today) converted to UTC.
+  static DateTime getIstDayEndInUtc([DateTime? istDay]) {
+    return getIstDayStartInUtc(istDay).add(const Duration(days: 1));
+  }
+
+  /// Whether [dt] falls within the same IST calendar day as [reference].
+  static bool isSameIstDay(DateTime dt, [DateTime? reference]) {
+    final istA = toIst(dt);
+    final istRef = toIst(reference ?? DateTime.now());
+    return istA.year == istRef.year &&
+        istA.month == istRef.month &&
+        istA.day == istRef.day;
+  }
 }

@@ -119,9 +119,18 @@ class SupabaseAttendanceReviewRepository implements AttendanceReviewRepository {
 
       final dynamic response;
       if (existingReviewId != null && existingReviewId.isNotEmpty) {
+        // Only update decision fields; admin_id, attendance_id and created_at are immutable audit fields
+        final updatePayload = {
+          'status': status.value,
+          'decision': decision.value,
+          'notes': trimmedNotes,
+          'resolved_at': status != ReviewStatus.pending
+              ? DateTime.now().toIso8601String()
+              : null,
+        };
         response = await client
             .from('attendance_reviews')
-            .update(payload)
+            .update(updatePayload)
             .eq('id', existingReviewId)
             .select()
             .single();

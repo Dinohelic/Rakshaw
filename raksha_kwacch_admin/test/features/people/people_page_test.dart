@@ -2,11 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:raksha_kwacch_admin/app/app.dart';
 import 'package:raksha_kwacch_admin/app/router/app_router.dart';
+import 'package:raksha_kwacch_admin/core/auth/supabase_admin_auth_repository.dart';
 import 'package:raksha_kwacch_admin/shared/widgets/app_button.dart';
 import 'package:raksha_kwacch_admin/features/people/data/demo_people_repository.dart';
 import 'package:raksha_kwacch_admin/features/people/presentation/widgets/student_details_drawer.dart';
 
+import '../../test_helpers/test_admin_auth_repository.dart';
+
 void main() {
+  setUp(() {
+    final authRepo = TestAdminAuthRepository(authorized: true);
+    SupabaseAdminAuthRepository.shared = authRepo;
+    AppRouter.resetRouter(authRepo: authRepo);
+  });
+
   Widget createTestApp() {
     return const RakshaKwacchAdminApp();
   }
