@@ -1,6 +1,7 @@
 library;
 
 import '../../../core/utils/app_date_time_format.dart';
+import 'attendance_review_models.dart';
 
 /// Domain models representing the actual hardware-verified Supabase schema
 /// for Raksha Kawach live attendance telemetry.
@@ -84,6 +85,10 @@ class LiveStudentInfo {
   final String? rfidUid;
   final String? schoolId;
   final DateTime? createdAt;
+  final bool isBlocked;
+  final int activeStrikes;
+  final DateTime? blockedAt;
+  final String? blockedReason;
 
   const LiveStudentInfo({
     required this.id,
@@ -92,7 +97,34 @@ class LiveStudentInfo {
     this.rfidUid,
     this.schoolId,
     this.createdAt,
+    this.isBlocked = false,
+    this.activeStrikes = 0,
+    this.blockedAt,
+    this.blockedReason,
   });
+
+  /// Displays the RFID identifier securely masked (e.g. `••• 4A8F`).
+  String get maskedRfid {
+    if (rfidUid == null || rfidUid!.trim().isEmpty) return 'No Card Linked';
+    final clean = rfidUid!.trim();
+    if (clean.length <= 4) return '••• $clean';
+    return '••• ${clean.substring(clean.length - 4)}';
+  }
+
+  /// Policy-aligned strike label (e.g. `1/3 — Warning`, `3/3 — Card Blocked`).
+  String get strikeStatusLabel {
+    if (isBlocked || activeStrikes >= 3) {
+      return '3/3 — Card Blocked';
+    }
+    switch (activeStrikes) {
+      case 2:
+        return '2/3 — Final Warning';
+      case 1:
+        return '1/3 — Warning';
+      default:
+        return '0/3 — Active';
+    }
+  }
 
   factory LiveStudentInfo.fromJson(Map<String, dynamic> json) {
     return LiveStudentInfo(
@@ -104,6 +136,12 @@ class LiveStudentInfo {
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
+      isBlocked: json['is_blocked'] == true,
+      activeStrikes: (json['active_strikes'] as num?)?.toInt() ?? 0,
+      blockedAt: json['blocked_at'] != null
+          ? DateTime.tryParse(json['blocked_at'].toString())
+          : null,
+      blockedReason: json['blocked_reason']?.toString(),
     );
   }
 
@@ -114,6 +152,10 @@ class LiveStudentInfo {
     'rfid_uid': rfidUid,
     'school_id': schoolId,
     'created_at': createdAt?.toIso8601String(),
+    'is_blocked': isBlocked,
+    'active_strikes': activeStrikes,
+    'blocked_at': blockedAt?.toIso8601String(),
+    'blocked_reason': blockedReason,
   };
 }
 
@@ -138,6 +180,14 @@ class LiveAttendanceRecord {
   /// Resolved student profile (via `students` lookup or join)
   final LiveStudentInfo? student;
 
+  /// Administrative conflict review decision (if any)
+  final AttendanceReviewRecord? review;
+
+  /// Effective final attendance status resolved strictly from scan telemetry
+  /// and explicit administrator adjudication.
+  EffectiveAttendanceStatus get effectiveStatus =>
+      EffectiveAttendanceResolver.resolveRecord(this, review: review);
+
   const LiveAttendanceRecord({
     required this.id,
     required this.studentId,
@@ -155,11 +205,13 @@ class LiveAttendanceRecord {
     this.phoneLocationAgeSeconds,
     this.phoneAccuracyM,
     this.student,
+    this.review,
   });
 
   factory LiveAttendanceRecord.fromJson(
     Map<String, dynamic> json, {
     LiveStudentInfo? resolvedStudent,
+    AttendanceReviewRecord? review,
   }) {
     final embeddedStudent = json['students'] is Map<String, dynamic>
         ? LiveStudentInfo.fromJson(json['students'] as Map<String, dynamic>)
@@ -205,6 +257,7 @@ class LiveAttendanceRecord {
           ? double.tryParse(json['phone_accuracy_m'].toString())
           : null,
       student: embeddedStudent,
+      review: review,
     );
   }
 
@@ -225,6 +278,7 @@ class LiveAttendanceRecord {
     int? phoneLocationAgeSeconds,
     double? phoneAccuracyM,
     LiveStudentInfo? student,
+    AttendanceReviewRecord? review,
   }) {
     return LiveAttendanceRecord(
       id: id ?? this.id,
@@ -244,6 +298,7 @@ class LiveAttendanceRecord {
           phoneLocationAgeSeconds ?? this.phoneLocationAgeSeconds,
       phoneAccuracyM: phoneAccuracyM ?? this.phoneAccuracyM,
       student: student ?? this.student,
+      review: review ?? this.review,
     );
   }
 }
@@ -258,6 +313,12 @@ class LiveDashboardMetrics {
   final int flaggedToday;
   final int pendingReviewToday;
 
+  // Dedicated Effective Attendance Metric Counts (Anti-Proxy Adjudication)
+  final int presentToday;
+  final int underReviewToday;
+  final int absentToday;
+  final int contactTransportToday;
+
   const LiveDashboardMetrics({
     this.totalToday = 0,
     this.morningBoardingsToday = 0,
@@ -266,10 +327,15 @@ class LiveDashboardMetrics {
     this.verifiedNearbyToday = 0,
     this.flaggedToday = 0,
     this.pendingReviewToday = 0,
+    this.presentToday = 0,
+    this.underReviewToday = 0,
+    this.absentToday = 0,
+    this.contactTransportToday = 0,
   });
 
   factory LiveDashboardMetrics.fromRecords(
     List<LiveAttendanceRecord> records, {
+    Map<String, AttendanceReviewRecord>? reviews,
     DateTime? referenceDay,
   }) {
     final todayRecords = records.where((r) {
@@ -281,6 +347,11 @@ class LiveDashboardMetrics {
     int deboarding = 0;
     int verifiedNearby = 0;
     int flagged = 0;
+
+    int present = 0;
+    int underReview = 0;
+    int absent = 0;
+    int contactTransport = 0;
 
     for (final r in todayRecords) {
       switch (r.eventType) {
@@ -300,6 +371,26 @@ class LiveDashboardMetrics {
       } else {
         flagged++;
       }
+
+      // Resolve effective attendance outcome
+      final effective = EffectiveAttendanceResolver.resolveRecord(
+        r,
+        review: r.review ?? reviews?[r.id],
+      );
+      switch (effective) {
+        case EffectiveAttendanceStatus.present:
+          present++;
+          break;
+        case EffectiveAttendanceStatus.underReview:
+          underReview++;
+          break;
+        case EffectiveAttendanceStatus.absent:
+          absent++;
+          break;
+        case EffectiveAttendanceStatus.contactTransport:
+          contactTransport++;
+          break;
+      }
     }
 
     return LiveDashboardMetrics(
@@ -310,6 +401,10 @@ class LiveDashboardMetrics {
       verifiedNearbyToday: verifiedNearby,
       flaggedToday: flagged,
       pendingReviewToday: flagged,
+      presentToday: present,
+      underReviewToday: underReview,
+      absentToday: absent,
+      contactTransportToday: contactTransport,
     );
   }
 }

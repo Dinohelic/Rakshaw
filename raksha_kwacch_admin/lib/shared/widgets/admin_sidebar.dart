@@ -7,6 +7,7 @@ import '../../core/auth/admin_auth_state.dart';
 import '../../core/auth/supabase_admin_auth_repository.dart';
 import '../../core/constants/app_constants.dart';
 import '../../features/attendance/data/supabase_live_attendance_repository.dart';
+import '../../features/transport_card/data/supabase_blocked_students_repository.dart';
 
 class AdminSidebar extends StatelessWidget {
   final AdminAuthRepository? authRepository;
@@ -172,6 +173,39 @@ class AdminSidebar extends StatelessWidget {
                               : FontWeight.w400,
                         ),
                       ),
+                      trailing: item.$3 == '/blocked-students'
+                          ? StreamBuilder<int>(
+                              stream: SupabaseBlockedStudentsRepository
+                                  .shared.blockedCountStream,
+                              initialData: SupabaseBlockedStudentsRepository
+                                  .shared.currentBlockedCount,
+                              builder: (context, snapshot) {
+                                final count = snapshot.data ?? 0;
+                                if (count <= 0) return const SizedBox.shrink();
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.statusRedBg,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: AppColors.statusRedBorder,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '$count',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.statusRedText,
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : null,
                       onTap: () {
                         if (Scaffold.of(context).isDrawerOpen) {
                           Navigator.pop(context);

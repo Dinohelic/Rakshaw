@@ -5,6 +5,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/auth/admin_auth_repository.dart';
 import '../../../../core/utils/app_date_time_format.dart';
 import '../../../../shared/widgets/admin_sidebar.dart';
+import '../../../attendance/domain/attendance_review_models.dart';
 import '../../../attendance/domain/live_attendance_models.dart';
 import '../../../attendance/domain/live_attendance_repository.dart';
 import '../dashboard_controller.dart';
@@ -53,6 +54,10 @@ class _DashboardPageState extends State<DashboardPage> {
             children: [
               // Top KPI Cards Section
               _KpiSection(controller: _controller),
+              const SizedBox(height: 24),
+
+              // Dedicated Effective Attendance Adjudication Breakdown
+              _EffectiveAttendanceSection(controller: _controller),
               const SizedBox(height: 24),
 
               // Operational Section (Hardware Activity & Needs Attention)
@@ -205,6 +210,259 @@ class _KpiCard extends StatelessWidget {
                   fontSize: 12,
                   color: AppColors.textSlate,
                 ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EffectiveAttendanceSection extends StatelessWidget {
+  final DashboardController controller;
+
+  const _EffectiveAttendanceSection({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final metrics = controller.metrics;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'EFFECTIVE ATTENDANCE STATUS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
+                      color: AppColors.textSlate,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      const Text(
+                        'Adjudicated Final Outcomes',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Text(
+                          'Counting Unit: Attendance Events (Today, IST)',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSlate,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.verified_user_outlined, size: 14),
+                label: const Text('Open Verification Review'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.brandRed,
+                  side: const BorderSide(color: AppColors.border),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+                onPressed: () => context.go('/verification'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              int crossAxisCount = 4;
+              if (constraints.maxWidth < 640) {
+                crossAxisCount = 1;
+              } else if (constraints.maxWidth < 1024) {
+                crossAxisCount = 2;
+              }
+
+              return GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: constraints.maxWidth < 640 ? 3.0 : 2.0,
+                children: [
+                  _EffectiveStatusCard(
+                    title: 'Present',
+                    value: '${metrics.presentToday}',
+                    subtitle: 'GPS verified or false alarm',
+                    icon: Icons.check_circle_outline,
+                    color: AppColors.statusGreenText,
+                    bgColor: AppColors.statusGreenBg,
+                    borderColor: AppColors.statusGreenBorder,
+                  ),
+                  _EffectiveStatusCard(
+                    title: 'Under Review',
+                    value: '${metrics.underReviewToday}',
+                    subtitle: 'Flagged, unverified phone',
+                    icon: Icons.schedule_outlined,
+                    color: AppColors.statusAmberText,
+                    bgColor: AppColors.statusAmberBg,
+                    borderColor: AppColors.statusAmberBorder,
+                    alert: metrics.underReviewToday > 0,
+                  ),
+                  _EffectiveStatusCard(
+                    title: 'Confirmed Absent',
+                    value: '${metrics.absentToday}',
+                    subtitle: 'Confirmed proxy boarding',
+                    icon: Icons.person_off_outlined,
+                    color: AppColors.statusRedText,
+                    bgColor: AppColors.statusRedBg,
+                    borderColor: AppColors.statusRedBorder,
+                    alert: metrics.absentToday > 0,
+                  ),
+                  _EffectiveStatusCard(
+                    title: 'Contact Transport',
+                    value: '${metrics.contactTransportToday}',
+                    subtitle: 'Requires supervisor follow-up',
+                    icon: Icons.contact_phone_outlined,
+                    color: const Color(0xFFC2410C),
+                    bgColor: const Color(0xFFFFF7ED),
+                    borderColor: const Color(0xFFFFEDD5),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EffectiveStatusCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+  final Color borderColor;
+  final bool alert;
+
+  const _EffectiveStatusCard({
+    required this.title,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+    required this.borderColor,
+    this.alert = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: alert ? borderColor : AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Icon(icon, size: 16, color: color),
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSlate,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -459,6 +717,41 @@ class _NeedsAttentionCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
+          if (controller.blockedCardsCount > 0)
+            InkWell(
+              onTap: () => context.go('/blocked-students'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: const BoxDecoration(
+                  color: AppColors.statusRedBg,
+                  border: Border(bottom: BorderSide(color: AppColors.statusRedBorder)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.block_outlined, size: 16, color: AppColors.statusRedText),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${controller.blockedCardsCount} transport card(s) blocked (3/3 strikes).',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.statusRedText,
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'Manage →',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.statusRedText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           if (items.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),
@@ -726,6 +1019,9 @@ class _RecentEventsSection extends StatelessWidget {
                         DataColumn(label: _TableHeaderText('Time (IST)')),
                         DataColumn(label: _TableHeaderText('Verification')),
                         DataColumn(
+                          label: _TableHeaderText('Effective Status'),
+                        ),
+                        DataColumn(
                           label: _TableHeaderText(
                             'Action',
                             textAlign: TextAlign.right,
@@ -858,6 +1154,11 @@ class _RecentEventsSection extends StatelessWidget {
                               ),
                             ),
                             DataCell(
+                              _EffectiveBadge(
+                                status: rec.effectiveStatus,
+                              ),
+                            ),
+                            DataCell(
                               TextButton(
                                 onPressed: () {
                                   if (isFlagged) {
@@ -959,6 +1260,59 @@ class _VerificationBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w500,
+          color: text,
+        ),
+      ),
+    );
+  }
+}
+
+class _EffectiveBadge extends StatelessWidget {
+  final EffectiveAttendanceStatus status;
+
+  const _EffectiveBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    Color bg;
+    Color border;
+    Color text;
+
+    switch (status) {
+      case EffectiveAttendanceStatus.present:
+        bg = AppColors.statusGreenBg;
+        border = AppColors.statusGreenBorder;
+        text = AppColors.statusGreenText;
+        break;
+      case EffectiveAttendanceStatus.underReview:
+        bg = AppColors.statusAmberBg;
+        border = AppColors.statusAmberBorder;
+        text = AppColors.statusAmberText;
+        break;
+      case EffectiveAttendanceStatus.absent:
+        bg = AppColors.statusRedBg;
+        border = AppColors.statusRedBorder;
+        text = AppColors.statusRedText;
+        break;
+      case EffectiveAttendanceStatus.contactTransport:
+        bg = const Color(0xFFFFF7ED);
+        border = const Color(0xFFFFEDD5);
+        text = const Color(0xFFC2410C);
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border.all(color: border),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        status.label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
           color: text,
         ),
       ),

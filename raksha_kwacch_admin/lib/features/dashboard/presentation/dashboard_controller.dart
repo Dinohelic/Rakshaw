@@ -6,9 +6,14 @@ import '../../../core/auth/admin_auth_repository.dart';
 import '../../../core/auth/admin_auth_state.dart';
 import '../../../core/auth/supabase_admin_auth_repository.dart';
 import '../../../core/utils/app_date_time_format.dart';
+import '../../attendance/data/supabase_attendance_review_repository.dart';
 import '../../attendance/data/supabase_live_attendance_repository.dart';
+import '../../attendance/domain/attendance_review_models.dart';
+import '../../attendance/domain/attendance_review_repository.dart';
 import '../../attendance/domain/live_attendance_models.dart';
 import '../../attendance/domain/live_attendance_repository.dart';
+import '../../transport_card/data/supabase_blocked_students_repository.dart';
+import '../../transport_card/domain/blocked_students_repository.dart';
 
 /// Presentation state controller for the Overview Dashboard.
 ///
@@ -18,25 +23,46 @@ import '../../attendance/domain/live_attendance_repository.dart';
 class DashboardController extends ChangeNotifier {
   final LiveAttendanceRepository liveAttendanceRepository;
   final AdminAuthRepository authRepository;
+  final AttendanceReviewRepository reviewRepository;
+  final BlockedStudentsRepository blockedStudentsRepository;
 
   List<LiveAttendanceRecord> _records = [];
+  Map<String, AttendanceReviewRecord> _reviewsMap = {};
   bool _isLoading = false;
   bool _isRealtimeActive = false;
   String? _errorMessage;
 
   StreamSubscription<List<LiveAttendanceRecord>>? _streamSubscription;
   StreamSubscription<AdminAuthState>? _authSubscription;
+  StreamSubscription<AttendanceReviewRecord>? _reviewSubscription;
+  StreamSubscription<int>? _blockedCountSubscription;
 
   DashboardController({
     LiveAttendanceRepository? liveAttendanceRepository,
     AdminAuthRepository? authRepository,
+    AttendanceReviewRepository? reviewRepository,
+    BlockedStudentsRepository? blockedStudentsRepository,
   }) : liveAttendanceRepository =
            liveAttendanceRepository ?? SupabaseLiveAttendanceRepository.shared,
-       authRepository = authRepository ?? SupabaseAdminAuthRepository.shared {
+       authRepository = authRepository ?? SupabaseAdminAuthRepository.shared,
+       reviewRepository =
+           reviewRepository ?? SupabaseAttendanceReviewRepository.shared,
+       blockedStudentsRepository =
+           blockedStudentsRepository ?? SupabaseBlockedStudentsRepository.shared {
     // Seed frame 1 from in-memory cache to prevent blank flickers during navigation
     if (this.liveAttendanceRepository.currentRecords.isNotEmpty) {
       _records = List.from(this.liveAttendanceRepository.currentRecords);
     }
+    if (this.reviewRepository is SupabaseAttendanceReviewRepository) {
+      _reviewsMap = Map.from(
+        (this.reviewRepository as SupabaseAttendanceReviewRepository)
+            .cachedReviews,
+      );
+    }
+
+    _blockedCountSubscription = this.blockedStudentsRepository.blockedCountStream.listen((_) {
+      notifyListeners();
+    });
 
     _authSubscription = this.authRepository.authStateChanges.listen((state) {
       if (state is AdminAuthorized) {
@@ -44,9 +70,20 @@ class DashboardController extends ChangeNotifier {
       } else if (state is AdminUnauthenticated || state is AdminUnauthorized) {
         _unsubscribeFromRealtime();
         _records = [];
+        _reviewsMap = {};
         notifyListeners();
       }
     });
+
+    if (this.reviewRepository is SupabaseAttendanceReviewRepository) {
+      _reviewSubscription =
+          (this.reviewRepository as SupabaseAttendanceReviewRepository)
+              .onReviewSavedStream
+              .listen((review) {
+                _reviewsMap[review.attendanceId] = review;
+                _mergeRecords([]);
+              });
+    }
 
     if (this.authRepository.isAuthorizedAdmin) {
       loadData();
@@ -54,6 +91,8 @@ class DashboardController extends ChangeNotifier {
   }
 
   List<LiveAttendanceRecord> get records => List.unmodifiable(_records);
+  Map<String, AttendanceReviewRecord> get reviewsMap =>
+      Map.unmodifiable(_reviewsMap);
   bool get isLoading => _isLoading;
   bool get isRealtimeActive => _isRealtimeActive;
   String? get errorMessage => _errorMessage;
@@ -63,9 +102,9 @@ class DashboardController extends ChangeNotifier {
       .where((r) => AppDateTimeFormat.isSameIstDay(r.scannedAt))
       .toList();
 
-  /// Real calculated day metrics for the 4 KPI cards.
+  /// Real calculated day metrics for the KPI cards including effective attendance.
   LiveDashboardMetrics get metrics =>
-      LiveDashboardMetrics.fromRecords(_records);
+      LiveDashboardMetrics.fromRecords(_records, reviews: _reviewsMap);
 
   /// ESP32-S3 hardware units observed from real attendance telemetry.
   List<ObservedHardwareUnit> get observedHardwareUnits {
@@ -87,9 +126,12 @@ class DashboardController extends ChangeNotifier {
   }
 
   /// Flagged scans needing administrative review (FLAG, NOT BLOCK).
-  List<LiveAttendanceRecord> get needsAttentionList => _records
-      .where((r) => r.verificationStatus != LiveVerificationStatus.phonePresent)
-      .toList();
+  List<LiveAttendanceRecord> get needsAttentionList => _records.where((r) {
+    final rev = r.review ?? _reviewsMap[r.id];
+    final eff = EffectiveAttendanceResolver.resolveRecord(r, review: rev);
+    return eff == EffectiveAttendanceStatus.underReview ||
+        eff == EffectiveAttendanceStatus.contactTransport;
+  }).toList();
 
   /// Recent attendance events (limit 20).
   List<LiveAttendanceRecord> get recentRecords => _records.take(20).toList();
@@ -113,6 +155,16 @@ class DashboardController extends ChangeNotifier {
       final recentList = await liveAttendanceRepository.getRecentAttendance(
         limit: 50,
       );
+
+      // 3. Load reviews if available
+      try {
+        final reviews = await reviewRepository.getReviews();
+        _reviewsMap = {for (final r in reviews) r.attendanceId: r};
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('DashboardController: Reviews query non-fatal error: $e');
+        }
+      }
 
       _mergeRecords([...todayList, ...recentList]);
       _subscribeToRealtime();
@@ -162,20 +214,26 @@ class DashboardController extends ChangeNotifier {
   void _mergeRecords(List<LiveAttendanceRecord> incoming) {
     final Map<String, LiveAttendanceRecord> deduplicated = {};
     for (final rec in _records) {
-      deduplicated[rec.id] = rec;
+      final rev = rec.review ?? _reviewsMap[rec.id];
+      deduplicated[rec.id] = rec.copyWith(review: rev);
     }
     for (final rec in incoming) {
-      deduplicated[rec.id] = rec;
+      final rev = rec.review ?? _reviewsMap[rec.id];
+      deduplicated[rec.id] = rec.copyWith(review: rev);
     }
     _records = deduplicated.values.toList()
       ..sort((a, b) => b.scannedAt.compareTo(a.scannedAt));
     notifyListeners();
   }
 
+  int get blockedCardsCount => blockedStudentsRepository.currentBlockedCount;
+
   @override
   void dispose() {
+    _reviewSubscription?.cancel();
     _authSubscription?.cancel();
     _streamSubscription?.cancel();
+    _blockedCountSubscription?.cancel();
     super.dispose();
   }
 }

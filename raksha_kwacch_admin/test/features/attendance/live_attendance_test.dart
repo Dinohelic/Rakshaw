@@ -242,6 +242,7 @@ class TestAttendanceReviewRepository implements AttendanceReviewRepository {
     required String adminId,
     String? adminEmail,
     String? existingReviewId,
+    AdjudicatedOutcome? adjudicatedOutcome,
   }) async {
     if (!configured) {
       return AttendanceReviewResult.failure(
@@ -270,6 +271,7 @@ class TestAttendanceReviewRepository implements AttendanceReviewRepository {
       notes: notes,
       resolvedAt: status != ReviewStatus.pending ? DateTime.now() : null,
       createdAt: DateTime.now(),
+      adjudicatedOutcome: adjudicatedOutcome,
     );
 
     reviews.removeWhere((r) => r.attendanceId == attendanceId);

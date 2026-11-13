@@ -11,6 +11,7 @@ import '../../features/attendance/presentation/pages/demo_attendance_page.dart';
 import '../../features/attendance/presentation/pages/verification_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/people/presentation/pages/people_page.dart';
+import '../../features/transport_card/presentation/pages/blocked_students_page.dart';
 import '../../shared/widgets/admin_shell.dart';
 import '../../shared/widgets/module_placeholder_page.dart';
 
@@ -102,6 +103,10 @@ class AppRouter {
             GoRoute(
               path: '/verification',
               builder: (context, state) => const VerificationPage(),
+            ),
+            GoRoute(
+              path: '/blocked-students',
+              builder: (context, state) => const BlockedStudentsPage(),
             ),
             GoRoute(
               path: '/fleet',

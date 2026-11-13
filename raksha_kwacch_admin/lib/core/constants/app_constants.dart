@@ -6,6 +6,7 @@ class AppConstants {
     ('Live Tracking', Icons.fmd_good_outlined, '/tracking'),
     ('Attendance', Icons.calendar_today_outlined, '/attendance'),
     ('Verification', Icons.verified_outlined, '/verification'),
+    ('Blocked Students', Icons.block_outlined, '/blocked-students'),
     ('Fleet & Routes', Icons.directions_bus_outlined, '/fleet'),
     ('People', Icons.group_outlined, '/people'),
     ('Alerts & Support', Icons.warning_amber_outlined, '/alerts'),

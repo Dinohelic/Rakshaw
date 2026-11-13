@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -19,11 +21,14 @@ class SupabaseAttendanceReviewRepository implements AttendanceReviewRepository {
 
   /// Reset singleton instance for testing environments.
   static void resetShared() {
+    _sharedInstance?.dispose();
     _sharedInstance = null;
   }
 
   final SupabaseClient? _client;
   bool _tableConfirmed = false;
+  final Map<String, AttendanceReviewRecord> _reviewCache = {};
+  StreamController<AttendanceReviewRecord>? _reviewSavedController;
 
   SupabaseAttendanceReviewRepository({SupabaseClient? client})
     : _client = client ?? SupabaseConfig.client;
@@ -33,6 +38,20 @@ class SupabaseAttendanceReviewRepository implements AttendanceReviewRepository {
 
   @override
   bool get isPersistenceAvailable => _tableConfirmed;
+
+  /// Broadcast stream notifying listeners when an administrative review is saved.
+  Stream<AttendanceReviewRecord> get onReviewSavedStream =>
+      (_reviewSavedController ??=
+              StreamController<AttendanceReviewRecord>.broadcast())
+          .stream;
+
+  /// Get cached review for an attendance event without re-querying the database.
+  AttendanceReviewRecord? getCachedReview(String attendanceId) =>
+      _reviewCache[attendanceId];
+
+  /// Unmodifiable view of currently cached reviews in memory.
+  Map<String, AttendanceReviewRecord> get cachedReviews =>
+      Map.unmodifiable(_reviewCache);
 
   @override
   Future<List<AttendanceReviewRecord>> getReviews() async {
@@ -46,13 +65,18 @@ class SupabaseAttendanceReviewRepository implements AttendanceReviewRepository {
           .order('created_at', ascending: false);
 
       _tableConfirmed = true;
-      return rows
+      final list = rows
           .map(
             (r) => AttendanceReviewRecord.fromJson(
               Map<String, dynamic>.from(r as Map),
             ),
           )
           .toList();
+
+      for (final rev in list) {
+        _reviewCache[rev.attendanceId] = rev;
+      }
+      return list;
     } on PostgrestException catch (e) {
       // 42P01 = undefined_table (relation "attendance_reviews" does not exist)
       // PGRST204 = table not found in OpenAPI schema
@@ -84,6 +108,7 @@ class SupabaseAttendanceReviewRepository implements AttendanceReviewRepository {
     required String adminId,
     String? adminEmail,
     String? existingReviewId,
+    AdjudicatedOutcome? adjudicatedOutcome,
   }) async {
     final client = _client;
     if (client == null) {
@@ -115,6 +140,8 @@ class SupabaseAttendanceReviewRepository implements AttendanceReviewRepository {
         'resolved_at': status != ReviewStatus.pending
             ? DateTime.now().toIso8601String()
             : null,
+        if (adjudicatedOutcome != null)
+          'adjudicated_outcome': adjudicatedOutcome.value,
       };
 
       final dynamic response;
@@ -127,6 +154,8 @@ class SupabaseAttendanceReviewRepository implements AttendanceReviewRepository {
           'resolved_at': status != ReviewStatus.pending
               ? DateTime.now().toIso8601String()
               : null,
+          if (adjudicatedOutcome != null)
+            'adjudicated_outcome': adjudicatedOutcome.value,
         };
         response = await client
             .from('attendance_reviews')
@@ -146,6 +175,8 @@ class SupabaseAttendanceReviewRepository implements AttendanceReviewRepository {
       final record = AttendanceReviewRecord.fromJson(
         Map<String, dynamic>.from(response as Map),
       );
+      _reviewCache[record.attendanceId] = record;
+      _reviewSavedController?.add(record);
       return AttendanceReviewResult.success(record);
     } on PostgrestException catch (e) {
       if (e.code == '42P01' || e.code == 'PGRST204' || e.code == 'PGRST200') {
@@ -154,11 +185,22 @@ class SupabaseAttendanceReviewRepository implements AttendanceReviewRepository {
             'Database persistence blocked: Table "attendance_reviews" does not exist in Supabase yet. Migration script "supabase/migrations/20261110_create_attendance_reviews.sql" is prepared awaiting administrator approval.';
         return AttendanceReviewResult.blockedByMigration(message: msg);
       }
+      if (e.code == '42703' ||
+          e.message.toLowerCase().contains('adjudicated_outcome')) {
+        const msg =
+            'Database persistence blocked: Column "adjudicated_outcome" does not exist in Supabase yet. Additive migration script "supabase/migrations/20261113_add_adjudicated_outcome_to_reviews.sql" is prepared awaiting administrator execution.';
+        return AttendanceReviewResult.blockedByMigration(message: msg);
+      }
       return AttendanceReviewResult.failure(
         'Database error while submitting review (${e.code}): ${e.message}',
       );
     } catch (e) {
       return AttendanceReviewResult.failure('Failed to submit review: $e');
     }
+  }
+
+  void dispose() {
+    _reviewSavedController?.close();
+    _reviewSavedController = null;
   }
 }

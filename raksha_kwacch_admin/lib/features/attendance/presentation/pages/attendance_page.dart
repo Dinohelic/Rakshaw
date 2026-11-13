@@ -175,12 +175,18 @@ class _AttendancePageState extends State<AttendancePage> {
                   width: 440,
                   child: VerificationReviewDrawer(
                     record: _recordUnderReview!,
-                    existingReview: null,
+                    existingReview:
+                        _recordUnderReview!.review ??
+                        (_reviewRepository is SupabaseAttendanceReviewRepository
+                            ? _reviewRepository
+                                .getCachedReview(_recordUnderReview!.id)
+                            : null),
                     reviewRepository: _reviewRepository,
                     currentAdminId: _controller.currentAdminId,
                     currentAdminEmail: _controller.currentAdminEmail,
                     onClose: () => setState(() => _recordUnderReview = null),
                     onReviewSaved: (review) {
+                      _controller.updateRecordReview(review);
                       setState(() => _recordUnderReview = null);
                     },
                   ),

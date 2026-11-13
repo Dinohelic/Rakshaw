@@ -7,9 +7,11 @@ import '../../../core/auth/admin_auth_state.dart';
 import '../../../core/auth/supabase_admin_auth_repository.dart';
 import '../../people/domain/people_models.dart';
 import '../../people/domain/people_repository.dart';
+import '../data/supabase_attendance_review_repository.dart';
 import '../data/supabase_live_attendance_repository.dart';
 import '../domain/attendance_models.dart';
 import '../domain/attendance_repository.dart';
+import '../domain/attendance_review_models.dart';
 import '../domain/live_attendance_models.dart';
 import '../domain/live_attendance_repository.dart';
 import '../domain/rfid_processing_service.dart';
@@ -321,11 +323,29 @@ class AttendanceController extends ChangeNotifier {
       for (final r in _liveRecords) r.id: r,
     };
     for (final r in incoming) {
-      recordMap[r.id] = r;
+      final cachedReview =
+          r.review ??
+          SupabaseAttendanceReviewRepository.shared.getCachedReview(r.id);
+      recordMap[r.id] = r.copyWith(review: cachedReview);
     }
     final merged = recordMap.values.toList()
       ..sort((a, b) => b.scannedAt.compareTo(a.scannedAt));
     _liveRecords = merged;
+  }
+
+  /// Updates local state when an administrator saves an adjudication review.
+  void updateRecordReview(AttendanceReviewRecord review) {
+    bool updated = false;
+    _liveRecords = _liveRecords.map((r) {
+      if (r.id == review.attendanceId) {
+        updated = true;
+        return r.copyWith(review: review);
+      }
+      return r;
+    }).toList();
+    if (updated) {
+      notifyListeners();
+    }
   }
 
   Future<void> fetchLiveRecords() async {

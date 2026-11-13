@@ -6,13 +6,107 @@ import '../../domain/attendance_review_models.dart';
 import '../../domain/attendance_review_repository.dart';
 import '../../domain/live_attendance_models.dart';
 
+/// Available administrative adjudication choices for anti-proxy conflict resolution.
+enum AdminOutcomeChoice {
+  confirmProxy(
+    outcome: AdjudicatedOutcome.absent,
+    decision: ReviewDecision.resolved,
+    title: 'Confirm Proxy (Mark Absent)',
+    subtitle:
+        'Student was not on bus. Marks final effective attendance as Absent.',
+    icon: Icons.person_off_outlined,
+    color: AppColors.statusRedText,
+    borderColor: AppColors.statusRedBorder,
+    bgColor: AppColors.statusRedBg,
+    notesLabel: 'Investigation & Disciplinary Notes *',
+    notesHint:
+        'Enter CCTV verification, bus supervisor testimony, or parent communication...',
+  ),
+  falseAlarm(
+    outcome: AdjudicatedOutcome.present,
+    decision: ReviewDecision.dismissed,
+    title: 'False Alarm (Mark Present)',
+    subtitle:
+        'Legitimate attendance confirmed. Mobile had GPS drift, outage, or was powered off.',
+    icon: Icons.check_circle_outline,
+    color: AppColors.statusGreenText,
+    borderColor: AppColors.statusGreenBorder,
+    bgColor: AppColors.statusGreenBg,
+    notesLabel: 'Legitimacy & GPS Explanation *',
+    notesHint:
+        'Enter driver/conductor confirmation, bus camera evidence, or GPS drift explanation...',
+  ),
+  contactTransport(
+    outcome: AdjudicatedOutcome.contactTransport,
+    decision: ReviewDecision.investigate,
+    title: 'Contact Transport Department',
+    subtitle:
+        'Inconclusive evidence. Requires Transport Department supervisor physical verification.',
+    icon: Icons.contact_phone_outlined,
+    color: Color(0xFFC2410C),
+    borderColor: Color(0xFFFFEDD5),
+    bgColor: Color(0xFFFFF7ED),
+    notesLabel: 'Escalation Reason & Recommended Action *',
+    notesHint:
+        'Detail why evidence is uncertain and what supervisor follow-up is requested...',
+  );
+
+  final AdjudicatedOutcome outcome;
+  final ReviewDecision decision;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final Color borderColor;
+  final Color bgColor;
+  final String notesLabel;
+  final String notesHint;
+
+  const AdminOutcomeChoice({
+    required this.outcome,
+    required this.decision,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.borderColor,
+    required this.bgColor,
+    required this.notesLabel,
+    required this.notesHint,
+  });
+
+  static AdminOutcomeChoice fromOutcome(AdjudicatedOutcome? outcome) {
+    switch (outcome) {
+      case AdjudicatedOutcome.absent:
+        return AdminOutcomeChoice.confirmProxy;
+      case AdjudicatedOutcome.present:
+        return AdminOutcomeChoice.falseAlarm;
+      case AdjudicatedOutcome.contactTransport:
+      case null:
+        return AdminOutcomeChoice.contactTransport;
+    }
+  }
+
+  static AdminOutcomeChoice fromDecision(ReviewDecision decision) {
+    switch (decision) {
+      case ReviewDecision.resolved:
+        return AdminOutcomeChoice.confirmProxy;
+      case ReviewDecision.dismissed:
+        return AdminOutcomeChoice.falseAlarm;
+      case ReviewDecision.investigate:
+        return AdminOutcomeChoice.contactTransport;
+    }
+  }
+}
+
 /// Right-hand slide-over drawer for administrative review of flagged attendance events.
 ///
 /// Implements Stitch design from `verification_review_drawer_open/code.html`.
 /// Enforces critical safety rules:
 /// 1. Original `attendance` row is immutable (FLAG, NOT BLOCK).
 /// 2. Verification status is never mutated.
-/// 3. If database table is not yet migrated, reports persistence as blocked.
+/// 3. Adjudication explicitly sets final attendance: Present, Absent, or Contact Transport.
+/// 4. Requires explicit confirmation dialog before confirming proxy (marking Absent).
 class VerificationReviewDrawer extends StatefulWidget {
   final LiveAttendanceRecord record;
   final AttendanceReviewRecord? existingReview;
@@ -42,7 +136,7 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
   final _formKey = GlobalKey<FormState>();
   final _notesController = TextEditingController();
 
-  late ReviewDecision _selectedDecision;
+  late AdminOutcomeChoice _selectedChoice;
   bool _isSaving = false;
   String? _statusBannerMessage;
   bool _isMigrationNotice = false;
@@ -50,8 +144,18 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
   @override
   void initState() {
     super.initState();
-    _selectedDecision =
-        widget.existingReview?.decision ?? ReviewDecision.investigate;
+    if (widget.existingReview?.adjudicatedOutcome != null) {
+      _selectedChoice = AdminOutcomeChoice.fromOutcome(
+        widget.existingReview!.adjudicatedOutcome,
+      );
+    } else if (widget.existingReview != null) {
+      _selectedChoice = AdminOutcomeChoice.fromDecision(
+        widget.existingReview!.decision,
+      );
+    } else {
+      _selectedChoice = AdminOutcomeChoice.contactTransport;
+    }
+
     if (widget.existingReview != null) {
       _notesController.text = widget.existingReview!.notes;
     }
@@ -66,6 +170,60 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Safety rule: Explicit confirmation dialog before marking attendance as Absent
+    if (_selectedChoice == AdminOutcomeChoice.confirmProxy) {
+      final currentStrikes = widget.record.student?.activeStrikes ?? 0;
+      final willBlock = currentStrikes >= 2;
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                willBlock ? Icons.block_outlined : Icons.warning_amber_rounded,
+                color: AppColors.statusRedText,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                willBlock
+                    ? 'Confirm Proxy & Block Card?'
+                    : 'Confirm Proxy Attendance?',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Marking this event as a Confirmed Proxy will adjudicate the student\'s final attendance as ABSENT for this transit session.\n\n'
+            'Student: ${widget.record.student?.studentName ?? widget.record.studentId}\n'
+            'Event: ${widget.record.eventType.label}\n\n'
+            'This decision is permanently recorded in the university audit ledger under your administrator UID.'
+            '${willBlock ? '\n\n⚠️ CRITICAL THREE-STRIKE ENFORCEMENT:\nThis will be Strike 3/3 for this student. Confirming this proxy violation will AUTOMATICALLY BLOCK the student\'s RFID transport card from future transit boarding until physically cleared by the Transport Department.' : '\n\nStrike Warning: This violation will issue Strike ${currentStrikes + 1}/3 to this student under university transport safety regulations.'}',
+            style: const TextStyle(fontSize: 13, height: 1.45),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.statusRedText,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(willBlock ? 'Confirm & Block Card' : 'Confirm Absent'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+
     setState(() {
       _isSaving = true;
       _statusBannerMessage = null;
@@ -76,11 +234,12 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
 
     final result = await widget.reviewRepository.submitReview(
       attendanceId: widget.record.id,
-      decision: _selectedDecision,
+      decision: _selectedChoice.decision,
       notes: _notesController.text,
       adminId: adminId,
       adminEmail: widget.currentAdminEmail,
       existingReviewId: widget.existingReview?.id,
+      adjudicatedOutcome: _selectedChoice.outcome,
     );
 
     if (!mounted) return;
@@ -92,9 +251,9 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
     if (result.isSuccess && result.review != null) {
       widget.onReviewSaved?.call(result.review!);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Review recorded successfully in database audit ledger.',
+            'Review recorded successfully. Effective attendance: ${_selectedChoice.outcome.label}.',
           ),
           backgroundColor: AppColors.statusGreenText,
         ),
@@ -103,7 +262,7 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
     } else if (result.isBlockedByMigration) {
       setState(() {
         _isMigrationNotice = true;
-        _statusBannerMessage = 'Database persistence blocked: Table "attendance_reviews" does not exist in Supabase yet. Migration script "supabase/migrations/20261110_create_attendance_reviews.sql" is prepared awaiting administrator approval.';
+        _statusBannerMessage = result.errorMessage;
       });
     } else {
       setState(() {
@@ -118,6 +277,12 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
     final record = widget.record;
     final studentName = record.student?.studentName ?? 'Unknown Student';
     final studentCode = record.student?.studentCode ?? record.studentId;
+    final currentEffective = EffectiveAttendanceResolver.resolveRecord(
+      record,
+      review: widget.existingReview,
+    );
+    final isNormallyVerified =
+        record.verificationStatus == LiveVerificationStatus.phonePresent;
 
     return Container(
       width: 440,
@@ -159,7 +324,7 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
                               color: AppColors.textDark,
                             ),
                           ),
-                          _buildHeaderBadge(record.verificationStatus),
+                          _buildEffectiveBadge(currentEffective),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -240,6 +405,41 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
                       const SizedBox(height: 20),
                     ],
 
+                    if (isNormallyVerified) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: AppColors.statusGreenBg,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.statusGreenBorder,
+                          ),
+                        ),
+                        child: const Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.verified_outlined,
+                              size: 18,
+                              color: AppColors.statusGreenText,
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Normally Verified Event: Phone proximity succeeded during this scan. Adjudicating this record will override automated GPS verification.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.statusGreenText,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     // SECTION 1: EVENT INFORMATION
                     const Text(
                       'EVENT INFORMATION',
@@ -264,6 +464,14 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
                             'Student',
                             studentName,
                             subvalue: studentCode,
+                          ),
+                          const Divider(height: 18),
+                          _buildDetailRow(
+                            'Transport Card & Strikes',
+                            record.student?.isBlocked == true
+                                ? '3/3 — CARD BLOCKED'
+                                : '${record.student?.activeStrikes ?? 0}/3 Active Strikes',
+                            subvalue: record.student?.maskedRfid ?? 'No RFID Linked',
                           ),
                           const Divider(height: 18),
                           _buildDetailRow(
@@ -313,7 +521,7 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
                     _buildProximityMetricCard(record),
                     const SizedBox(height: 24),
 
-                    // SECTION 3: ADMINISTRATIVE RESOLUTION
+                    // SECTION 3: ADMINISTRATIVE DETERMINATION
                     const Text(
                       'ADMINISTRATIVE DETERMINATION',
                       style: TextStyle(
@@ -323,58 +531,96 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
                         color: AppColors.textMuted,
                       ),
                     ),
-                    const SizedBox(height: 8),
-
-                    // Decision Dropdown
+                    const SizedBox(height: 4),
                     const Text(
-                      'Review Decision *',
+                      'Select the final effective attendance outcome for this event:',
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: AppColors.textSlate,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    DropdownButtonFormField<ReviewDecision>(
-                      initialValue: _selectedDecision,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                      ),
-                      items: ReviewDecision.values.map((d) {
-                        return DropdownMenuItem(
-                          value: d,
-                          child: Text(
-                            d.label,
-                            style: const TextStyle(fontSize: 13),
+                    const SizedBox(height: 10),
+
+                    // Choice Cards
+                    ...AdminOutcomeChoice.values.map((choice) {
+                      final isSelected = _selectedChoice == choice;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedChoice = choice;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? choice.bgColor
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelected
+                                    ? choice.color
+                                    : AppColors.border,
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  choice.icon,
+                                  size: 20,
+                                  color: choice.color,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        choice.title,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: choice.color,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        choice.subtitle,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textSlate,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  isSelected
+                                      ? Icons.radio_button_checked
+                                      : Icons.radio_button_unchecked,
+                                  color: isSelected
+                                      ? choice.color
+                                      : AppColors.textSlate,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
                           ),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          setState(() => _selectedDecision = val);
-                        }
-                      },
-                    ),
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 14),
 
-                    // Notes
-                    const Text(
-                      'Review Notes *',
-                      style: TextStyle(
+                    // Notes Field
+                    Text(
+                      _selectedChoice.notesLabel,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textDark,
@@ -389,7 +635,7 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
                         color: AppColors.textDark,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Enter review findings, driver confirmation, or follow-up notes...',
+                        hintText: _selectedChoice.notesHint,
                         hintStyle: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textMuted,
@@ -448,7 +694,7 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Rule: FLAG, NOT BLOCK. Administrative review creates an independent audit entry and never modifies or deletes the original attendance scan.',
+                              'Rule: FLAG, NOT BLOCK. Administrative adjudication sets the effective attendance outcome and leaves the raw RFID scan and GPS telemetry immutable.',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSlate,
@@ -509,7 +755,7 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
                       : const Icon(Icons.save_outlined, size: 16),
                   label: Text(_isSaving ? 'Saving...' : 'Save Review'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandRed,
+                    backgroundColor: _selectedChoice.color,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
@@ -637,26 +883,6 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
             ],
           ),
           const SizedBox(height: 12),
-
-          // Distance bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: distanceM != null
-                  ? (distanceM / 300.0).clamp(0.05, 1.0)
-                  : 0,
-              minHeight: 6,
-              backgroundColor: AppColors.background,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isDistanceOk
-                    ? const Color(0xFF10B981)
-                    : const Color(0xFFF59E0B),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Telemetry Criteria Breakdown
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -666,17 +892,17 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
             child: Column(
               children: [
                 _buildCriteriaItem(
-                  'Distance Criteria',
+                  'Distance Threshold',
                   distanceM != null
                       ? '${distanceM.toStringAsFixed(1)} m'
-                      : 'No Fix',
-                  '≤ 100 m required',
+                      : 'No Data',
+                  '≤ 100m required',
                   isDistanceOk,
                 ),
                 const Divider(height: 12),
                 _buildCriteriaItem(
-                  'Location Age',
-                  ageS != null ? '${ageS}s ago' : 'No Signal',
+                  'Location Freshness',
+                  ageS != null ? '${ageS}s ago' : 'No Data',
                   '≤ 300s required',
                   isAgeOk,
                 ),
@@ -738,27 +964,47 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
     );
   }
 
-  Widget _buildHeaderBadge(LiveVerificationStatus status) {
-    final isFlagged = status != LiveVerificationStatus.phonePresent;
+  Widget _buildEffectiveBadge(EffectiveAttendanceStatus status) {
+    Color bg;
+    Color border;
+    Color text;
+
+    switch (status) {
+      case EffectiveAttendanceStatus.present:
+        bg = AppColors.statusGreenBg;
+        border = AppColors.statusGreenBorder;
+        text = AppColors.statusGreenText;
+        break;
+      case EffectiveAttendanceStatus.underReview:
+        bg = AppColors.statusAmberBg;
+        border = AppColors.statusAmberBorder;
+        text = AppColors.statusAmberText;
+        break;
+      case EffectiveAttendanceStatus.absent:
+        bg = AppColors.statusRedBg;
+        border = AppColors.statusRedBorder;
+        text = AppColors.statusRedText;
+        break;
+      case EffectiveAttendanceStatus.contactTransport:
+        bg = const Color(0xFFFFF7ED);
+        border = const Color(0xFFFFEDD5);
+        text = const Color(0xFFC2410C);
+        break;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: isFlagged ? AppColors.statusAmberBg : AppColors.statusGreenBg,
+        color: bg,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: isFlagged
-              ? AppColors.statusAmberBorder
-              : AppColors.statusGreenBorder,
-        ),
+        border: Border.all(color: border),
       ),
       child: Text(
-        isFlagged ? 'Flagged' : 'Verified',
+        status.label.toUpperCase(),
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: isFlagged
-              ? AppColors.statusAmberText
-              : AppColors.statusGreenText,
+          color: text,
         ),
       ),
     );

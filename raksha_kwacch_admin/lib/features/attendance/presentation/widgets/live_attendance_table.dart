@@ -4,6 +4,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/app_date_time_format.dart';
 import '../../../../shared/widgets/app_data_table.dart';
 import '../../../../shared/widgets/app_status_badge.dart';
+import '../../domain/attendance_review_models.dart';
 import '../../domain/live_attendance_models.dart';
 
 class _TableColumn {
@@ -59,6 +60,52 @@ class LiveAttendanceTable extends StatelessWidget {
       case LiveVerificationStatus.locationUnavailable:
         return AppStatusType.neutral;
     }
+  }
+
+  Widget _buildEffectiveAttendanceBadge(EffectiveAttendanceStatus status) {
+    Color bg;
+    Color border;
+    Color text;
+
+    switch (status) {
+      case EffectiveAttendanceStatus.present:
+        bg = AppColors.statusGreenBg;
+        border = AppColors.statusGreenBorder;
+        text = AppColors.statusGreenText;
+        break;
+      case EffectiveAttendanceStatus.underReview:
+        bg = AppColors.statusAmberBg;
+        border = AppColors.statusAmberBorder;
+        text = AppColors.statusAmberText;
+        break;
+      case EffectiveAttendanceStatus.absent:
+        bg = AppColors.statusRedBg;
+        border = AppColors.statusRedBorder;
+        text = AppColors.statusRedText;
+        break;
+      case EffectiveAttendanceStatus.contactTransport:
+        bg = const Color(0xFFFFF7ED);
+        border = const Color(0xFFFFEDD5);
+        text = const Color(0xFFC2410C);
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: border),
+      ),
+      child: Text(
+        status.label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: text,
+        ),
+      ),
+    );
   }
 
   @override
@@ -185,21 +232,26 @@ class LiveAttendanceTable extends StatelessWidget {
     }
 
     const columns = [
-      _TableColumn(title: 'Scanned At', minWidth: 110, flex: 1.4),
-      _TableColumn(title: 'Student Profile', minWidth: 190, flex: 2.8),
-      _TableColumn(title: 'Event Type', minWidth: 140, flex: 2.0),
+      _TableColumn(title: 'Scanned At', minWidth: 100, flex: 1.3),
+      _TableColumn(title: 'Student Profile', minWidth: 170, flex: 2.4),
+      _TableColumn(title: 'Event Type', minWidth: 130, flex: 1.8),
       _TableColumn(
         title: 'Phone Proximity (Anti-Proxy)',
-        minWidth: 190,
-        flex: 2.8,
+        minWidth: 170,
+        flex: 2.3,
+      ),
+      _TableColumn(
+        title: 'Effective Status',
+        minWidth: 140,
+        flex: 1.9,
       ),
       _TableColumn(
         title: 'Telemetry (Dist / Acc / Age)',
-        minWidth: 200,
-        flex: 2.8,
+        minWidth: 180,
+        flex: 2.4,
       ),
-      _TableColumn(title: 'Device / Bus', minWidth: 130, flex: 1.8),
-      _TableColumn(title: 'GPS Fix', minWidth: 130, flex: 1.8),
+      _TableColumn(title: 'Device / Bus', minWidth: 120, flex: 1.6),
+      _TableColumn(title: 'GPS Fix', minWidth: 120, flex: 1.6),
       _TableColumn(title: 'Action', minWidth: 80, flex: 1.0),
     ];
 
@@ -593,6 +645,18 @@ class LiveAttendanceTable extends StatelessWidget {
                                       type: _getVerificationBadgeType(
                                         rec.verificationStatus,
                                       ),
+                                    ),
+                                  ),
+
+                                  // Effective Status
+                                  Container(
+                                    width: colWidths['Effective Status'],
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                    ),
+                                    alignment: Alignment.centerLeft,
+                                    child: _buildEffectiveAttendanceBadge(
+                                      rec.effectiveStatus,
                                     ),
                                   ),
 

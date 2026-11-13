@@ -25,7 +25,8 @@ class AttendanceReviewResult {
   factory AttendanceReviewResult.blockedByMigration({String? message}) =>
       AttendanceReviewResult._(
         isSuccess: false,
-        errorMessage: message ?? 'public.attendance_reviews schema migration pending administrator database execution.',
+        errorMessage: message ??
+            'Database persistence blocked: Table "attendance_reviews" does not exist in Supabase yet. Migration script "supabase/migrations/20261110_create_attendance_reviews.sql" is prepared awaiting administrator approval.',
         isBlockedByMigration: true,
       );
 }
@@ -52,5 +53,6 @@ abstract class AttendanceReviewRepository {
     required String adminId,
     String? adminEmail,
     String? existingReviewId,
+    AdjudicatedOutcome? adjudicatedOutcome,
   });
 }

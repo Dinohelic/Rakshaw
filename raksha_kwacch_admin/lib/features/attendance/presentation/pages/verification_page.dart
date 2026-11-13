@@ -707,6 +707,7 @@ class _VerificationPageState extends State<VerificationPage> {
                         DataColumn(label: Text('SCAN TIME')),
                         DataColumn(label: Text('VERIFICATION')),
                         DataColumn(label: Text('DISTANCE / REASON')),
+                        DataColumn(label: Text('EFFECTIVE ATTENDANCE')),
                         DataColumn(label: Text('REVIEW STATUS')),
                         DataColumn(label: Text('ACTION')),
                       ],
@@ -834,6 +835,16 @@ class _VerificationPageState extends State<VerificationPage> {
                               ),
                             ),
 
+                            // Effective Attendance
+                            DataCell(
+                              _buildEffectiveAttendanceBadge(
+                                EffectiveAttendanceResolver.resolveRecord(
+                                  rec,
+                                  review: existingReview,
+                                ),
+                              ),
+                            ),
+
                             // Review Status
                             DataCell(
                               reviewStatus != null
@@ -948,6 +959,52 @@ class _VerificationPageState extends State<VerificationPage> {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
+          color: text,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEffectiveAttendanceBadge(EffectiveAttendanceStatus status) {
+    Color bg;
+    Color border;
+    Color text;
+
+    switch (status) {
+      case EffectiveAttendanceStatus.present:
+        bg = AppColors.statusGreenBg;
+        border = AppColors.statusGreenBorder;
+        text = AppColors.statusGreenText;
+        break;
+      case EffectiveAttendanceStatus.underReview:
+        bg = AppColors.statusAmberBg;
+        border = AppColors.statusAmberBorder;
+        text = AppColors.statusAmberText;
+        break;
+      case EffectiveAttendanceStatus.absent:
+        bg = AppColors.statusRedBg;
+        border = AppColors.statusRedBorder;
+        text = AppColors.statusRedText;
+        break;
+      case EffectiveAttendanceStatus.contactTransport:
+        bg = const Color(0xFFFFF7ED);
+        border = const Color(0xFFFFEDD5);
+        text = const Color(0xFFC2410C);
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: border),
+      ),
+      child: Text(
+        status.label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
           color: text,
         ),
       ),
