@@ -35,8 +35,15 @@ class AppDateTimeFormat {
     return includeTimezone ? '$h:$m:$s IST' : '$h:$m:$s';
   }
 
-  /// Formats time in 12-hour format with AM/PM: `08:14:02 AM IST`.
-  static String formatTime12Hour(DateTime dt, {bool includeTimezone = true}) {
+  /// Formats time in 12-hour format with AM/PM: `hh:mm:ss a` (e.g. `08:14:02 AM`).
+  ///
+  /// If [includeSeconds] is false: `hh:mm a` (e.g. `08:14 AM`).
+  /// If [includeTimezone] is true, appends ` IST`.
+  static String formatTime12Hour(
+    DateTime dt, {
+    bool includeSeconds = true,
+    bool includeTimezone = false,
+  }) {
     final ist = toIst(dt);
     final period = ist.hour >= 12 ? 'PM' : 'AM';
     final hour12 = ist.hour == 0
@@ -45,7 +52,13 @@ class AppDateTimeFormat {
     final h = hour12.toString().padLeft(2, '0');
     final m = ist.minute.toString().padLeft(2, '0');
     final s = ist.second.toString().padLeft(2, '0');
-    return includeTimezone ? '$h:$m:$s $period IST' : '$h:$m:$s $period';
+    final timeStr = includeSeconds ? '$h:$m:$s $period' : '$h:$m $period';
+    return includeTimezone ? '$timeStr IST' : timeStr;
+  }
+
+  /// Detailed scan timestamps in 12-hour format: `hh:mm:ss a` (e.g. `08:14:02 AM`).
+  static String formatScanTime(DateTime dt) {
+    return formatTime12Hour(dt, includeSeconds: true, includeTimezone: false);
   }
 
   /// Formats date in `dd MMM yyyy` format.
@@ -70,6 +83,47 @@ class AppDateTimeFormat {
     final month = months[ist.month - 1];
     final day = ist.day.toString().padLeft(2, '0');
     return '$day $month ${ist.year}';
+  }
+
+  /// Formats short date in `dd MMM` format.
+  ///
+  /// Example: `10 Nov`
+  static String formatDateShort(DateTime dt) {
+    final ist = toIst(dt);
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final month = months[ist.month - 1];
+    final day = ist.day.toString().padLeft(2, '0');
+    return '$day $month';
+  }
+
+  /// Date + time in 12-hour format: `dd MMM yyyy, hh:mm a` (e.g. `10 Nov 2026, 08:14 AM`).
+  ///
+  /// Set [includeSeconds] to true for `dd MMM yyyy, hh:mm:ss a`.
+  static String formatDateTime12Hour(
+    DateTime dt, {
+    bool includeSeconds = false,
+    bool includeTimezone = false,
+  }) {
+    final dateStr = formatDate(dt);
+    final timeStr = formatTime12Hour(
+      dt,
+      includeSeconds: includeSeconds,
+      includeTimezone: includeTimezone,
+    );
+    return '$dateStr, $timeStr';
   }
 
   /// Formats date and time: `10 Nov 2026, 08:14:02 IST`.
@@ -110,22 +164,37 @@ class AppDateTimeFormat {
     return '$weekday, $month ${ist.day}, ${ist.year}';
   }
 
-  /// Compact scan time display showing time and indicating if not today.
-  static String formatScanTimeTable(DateTime dt, {DateTime? referenceNow}) {
+  /// Compact scan time display showing time and indicating explicit date if not today (or when [showDate] is true).
+  ///
+  /// Today: `hh:mm:ss a` (e.g. `08:14:02 AM`)
+  /// Historical / other day: `dd MMM, hh:mm:ss a` (e.g. `10 Nov, 08:14:02 AM`)
+  static String formatScanTimeTable(
+    DateTime dt, {
+    DateTime? referenceNow,
+    bool showDate = false,
+  }) {
     final ist = toIst(dt);
     final nowIst = toIst(referenceNow ?? DateTime.now());
-    final isToday =
+    final isToday = !showDate &&
         ist.year == nowIst.year &&
         ist.month == nowIst.month &&
         ist.day == nowIst.day;
 
-    final time = formatTime(dt, includeTimezone: true);
+    final time = formatScanTime(dt);
     if (isToday) {
       return time;
     }
-    final date =
-        '${ist.day.toString().padLeft(2, '0')}/${ist.month.toString().padLeft(2, '0')}';
-    return '$date $time';
+    final date = formatDateShort(dt);
+    return '$date, $time';
+  }
+
+  /// Formats a DateTime for the Supabase `event_date` query: `YYYY-MM-DD` in IST.
+  static String formatIstDateKey(DateTime dt) {
+    final ist = toIst(dt);
+    final y = ist.year.toString().padLeft(4, '0');
+    final m = ist.month.toString().padLeft(2, '0');
+    final d = ist.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
   }
 
   /// Returns the start of the specified IST day (defaults to today) converted to UTC.

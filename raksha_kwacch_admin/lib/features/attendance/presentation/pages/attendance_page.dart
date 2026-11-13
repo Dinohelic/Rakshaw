@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/auth/admin_auth_repository.dart';
 import '../../../../core/auth/supabase_admin_auth_repository.dart';
+import '../../../../core/utils/app_date_time_format.dart';
 import '../../../../shared/widgets/app_data_table.dart';
 import '../../../../shared/widgets/app_filter_bar.dart';
 import '../../../people/data/demo_people_repository.dart';
@@ -149,6 +150,7 @@ class _AttendancePageState extends State<AttendancePage> {
                         historyErrorMessage: _controller.historyError,
                         realtimeErrorMessage: _controller.realtimeError,
                         isRealtimeActive: _controller.isRealtimeActive,
+                        showDate: !_controller.isTodaySelected,
                         onRetry: _controller.fetchLiveRecords,
                         onRetryRealtime: _controller.retryRealtime,
                         onReviewRecord: (rec) {
@@ -979,10 +981,18 @@ class _AttendancePageState extends State<AttendancePage> {
         final isNarrow = constraints.maxWidth < 1100;
         final isSmall = constraints.maxWidth < 700;
 
+        final dateLabel = _controller.isTodaySelected
+            ? 'Today'
+            : (_controller.isAllDates
+                ? 'All Dates'
+                : AppDateTimeFormat.formatDate(_controller.selectedDate!));
+
         final card1 = _buildMetricCard(
           title: 'Hardware Events',
           count: '${_controller.liveTotalCount}',
-          subtitle: 'Ingested scan records',
+          subtitle: _controller.isTodaySelected
+              ? "Today's scan records"
+              : 'Scan records ($dateLabel)',
           icon: Icons.sensors,
           color: AppColors.textDark,
           iconBg: AppColors.brandLightRed,
@@ -1087,15 +1097,15 @@ class _AttendancePageState extends State<AttendancePage> {
           children: [
             cardLayout,
             const SizedBox(height: 8),
-            const Row(
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline, size: 14, color: AppColors.textMuted),
-                SizedBox(width: 6),
+                const Icon(Icons.info_outline, size: 14, color: AppColors.textMuted),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Ingested via \'raksha-attendance\' Edge Function. Anti-proxy handoff: nearby distance ≤ 100m, phone location age ≤ 300s, GPS accuracy ≤ 100m.',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSlate),
+                    'Ingested via \'raksha-attendance\' Edge Function ($dateLabel). Anti-proxy handoff: nearby distance ≤ 100m, phone location age ≤ 300s, GPS accuracy ≤ 100m.',
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSlate),
                   ),
                 ),
               ],
@@ -1229,6 +1239,7 @@ class _AttendancePageState extends State<AttendancePage> {
       searchController: _searchController,
       onSearchChanged: _controller.setSearchQuery,
       actions: [
+        _buildLiveDateFilterDropdown(),
         _buildDropdown<LiveEventType?>(
           value: _controller.liveEventTypeFilter,
           hint: 'Event Type: All',
@@ -1267,6 +1278,74 @@ class _AttendancePageState extends State<AttendancePage> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildLiveDateFilterDropdown() {
+    String currentValue;
+    if (_controller.isAllDates) {
+      currentValue = 'all';
+    } else if (_controller.isTodaySelected) {
+      currentValue = 'today';
+    } else {
+      currentValue = 'custom';
+    }
+
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: currentValue,
+          icon: const Icon(
+            Icons.calendar_today,
+            size: 14,
+            color: AppColors.textSlate,
+          ),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textDark,
+          ),
+          items: [
+            const DropdownMenuItem(value: 'today', child: Text('Date: Today')),
+            DropdownMenuItem(
+              value: 'custom',
+              child: Text(
+                currentValue == 'custom'
+                    ? 'Date: ${AppDateTimeFormat.formatDate(_controller.selectedDate!)}'
+                    : 'Pick Date...',
+              ),
+            ),
+            const DropdownMenuItem(value: 'all', child: Text('Date: All Dates')),
+          ],
+          onChanged: (val) async {
+            if (val == 'today') {
+              _controller.selectToday();
+            } else if (val == 'all') {
+              _controller.setAllDates();
+            } else if (val == 'custom') {
+              final initial = _controller.selectedDate ??
+                  AppDateTimeFormat.toIst(DateTime.now());
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: initial,
+                firstDate: DateTime(2025),
+                lastDate: DateTime(2030),
+                helpText: 'Select Attendance Date (IST)',
+              );
+              if (picked != null) {
+                _controller.setSelectedDate(picked);
+              }
+            }
+          },
+        ),
+      ),
     );
   }
 

@@ -62,16 +62,16 @@ class BlockedStudent {
     }
   }
 
-  /// Formats the blocked timestamp in Indian Standard Time (IST).
+  /// Formats the blocked timestamp in Indian Standard Time (IST) 12-hour format: `dd MMM yyyy, hh:mm a`.
   String get formattedBlockedAt {
     if (blockedAt == null) return 'N/A';
-    return AppDateTimeFormat.formatDateTime(blockedAt!);
+    return AppDateTimeFormat.formatDateTime12Hour(blockedAt!);
   }
 
-  /// Formats the last violation timestamp in IST.
+  /// Formats the last violation timestamp in IST 12-hour format.
   String get formattedLastViolationTime {
     if (lastViolationTime == null) return 'N/A';
-    return AppDateTimeFormat.formatDateTime(lastViolationTime!);
+    return AppDateTimeFormat.formatDateTime12Hour(lastViolationTime!);
   }
 
   factory BlockedStudent.fromJson(Map<String, dynamic> json) {
@@ -185,7 +185,7 @@ class StudentStrikeRecord {
   bool get isRevoked => status == 'revoked';
   bool get isCleared => status == 'cleared_by_unblock';
 
-  String get formattedCreatedAt => AppDateTimeFormat.formatDateTime(createdAt);
+  String get formattedCreatedAt => AppDateTimeFormat.formatDateTime12Hour(createdAt);
 
   factory StudentStrikeRecord.fromJson(Map<String, dynamic> json) {
     return StudentStrikeRecord(
@@ -248,7 +248,7 @@ class TransportCardActionRecord {
     this.metadata,
   });
 
-  String get formattedCreatedAt => AppDateTimeFormat.formatDateTime(createdAt);
+  String get formattedCreatedAt => AppDateTimeFormat.formatDateTime12Hour(createdAt);
 
   factory TransportCardActionRecord.fromJson(Map<String, dynamic> json) {
     return TransportCardActionRecord(

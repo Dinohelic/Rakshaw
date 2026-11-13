@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/app_date_time_format.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_status_badge.dart';
 
@@ -110,12 +111,7 @@ class _StudentDetailsDrawerState extends State<StudentDetailsDrawer> {
   }
 
   String _formatTimestamp(DateTime dt) {
-    final day = dt.day.toString().padLeft(2, '0');
-    final month = dt.month.toString().padLeft(2, '0');
-    final year = dt.year;
-    final hour = dt.hour.toString().padLeft(2, '0');
-    final minute = dt.minute.toString().padLeft(2, '0');
-    return '$day/$month/$year $hour:$minute';
+    return AppDateTimeFormat.formatDateTime12Hour(dt);
   }
 
   void _confirmApproval(Student student) {
@@ -885,29 +881,37 @@ class _StudentDetailsDrawerState extends State<StudentDetailsDrawer> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const AppStatusBadge(
-                    label: 'ASSIGNED',
-                    type: AppStatusType.success,
+                  AppStatusBadge(
+                    label: _student!.isCardBlocked ? 'CARD BLOCKED' : 'ASSIGNED',
+                    type: _student!.isCardBlocked
+                        ? AppStatusType.error
+                        : AppStatusType.success,
                   ),
-                  InkWell(
-                    onTap: _showComingSoon,
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.badge_outlined,
-                          size: 14,
-                          color: AppColors.brandRed,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          'Manage RFID Card',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.brandRed,
-                          ),
-                        ),
-                      ],
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _student!.isCardBlocked
+                          ? AppColors.statusRedBg
+                          : AppColors.background,
+                      border: Border.all(
+                        color: _student!.isCardBlocked
+                            ? AppColors.statusRedBorder
+                            : AppColors.border,
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Strikes: ${_student!.strikeRatio}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: _student!.isCardBlocked
+                            ? AppColors.statusRedText
+                            : AppColors.textSlate,
+                      ),
                     ),
                   ),
                 ],
@@ -940,11 +944,12 @@ class _StudentDetailsDrawerState extends State<StudentDetailsDrawer> {
                             border: Border.all(color: AppColors.border),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
-                            '•••• •••• •••• B4E3',
-                            style: TextStyle(
+                          child: Text(
+                            _student!.maskedRfid,
+                            style: const TextStyle(
                               fontSize: 12,
                               fontFamily: 'monospace',
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -959,6 +964,51 @@ class _StudentDetailsDrawerState extends State<StudentDetailsDrawer> {
                   ),
                 ],
               ),
+              if (_student!.isCardBlocked && _student!.blockedReason != null) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.statusRedBg,
+                    border: Border.all(color: AppColors.statusRedBorder),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.block,
+                        size: 14,
+                        color: AppColors.statusRedText,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Blocked Reason: ${_student!.blockedReason}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.statusRedText,
+                              ),
+                            ),
+                            if (_student!.blockedAt != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                'Blocked On: ${_formatTimestamp(_student!.blockedAt!)}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.statusRedText,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),

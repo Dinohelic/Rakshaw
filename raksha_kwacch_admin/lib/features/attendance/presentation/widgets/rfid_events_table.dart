@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/app_date_time_format.dart';
 import '../../../../shared/widgets/app_data_table.dart';
 import '../../../../shared/widgets/app_status_badge.dart';
 import '../../domain/attendance_models.dart';
@@ -24,11 +25,7 @@ class RfidEventsTable extends StatelessWidget {
   const RfidEventsTable({super.key, required this.events});
 
   String _formatTime(DateTime dt) {
-    final local = dt.toLocal();
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-    final second = local.second.toString().padLeft(2, '0');
-    return '$hour:$minute:$second';
+    return AppDateTimeFormat.formatScanTimeTable(dt);
   }
 
   AppStatusType _getEventTypeBadge(RfidEventType type) {

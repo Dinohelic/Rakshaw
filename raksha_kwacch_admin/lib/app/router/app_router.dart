@@ -155,6 +155,14 @@ class AppRouter {
           return '/overview';
         }
 
+        // Hidden routes for Synergy 2026 demo redirect to /overview
+        if (currentPath == '/tracking' ||
+            currentPath == '/fleet' ||
+            currentPath == '/alerts' ||
+            currentPath == '/settings') {
+          return '/overview';
+        }
+
         return null;
       },
     );

@@ -47,6 +47,23 @@ class _VerificationPageState extends State<VerificationPage> {
   ReviewFilter _selectedReviewFilter = ReviewFilter.all;
   LiveVerificationStatus? _selectedStatusFilter;
 
+  // Date Filtering (defaults to Today IST)
+  DateTime? _selectedDate;
+  bool _isAllDates = false;
+
+  bool get _isTodaySelected =>
+      !_isAllDates &&
+      (_selectedDate == null || AppDateTimeFormat.isSameIstDay(_selectedDate!));
+
+  String get _dateScopeLabel {
+    if (_isAllDates) return 'All Dates';
+    if (_selectedDate == null ||
+        AppDateTimeFormat.isSameIstDay(_selectedDate!)) {
+      return 'Today';
+    }
+    return AppDateTimeFormat.formatDate(_selectedDate!);
+  }
+
   LiveAttendanceRecord? _selectedRecordForReview;
 
   @override
@@ -64,7 +81,8 @@ class _VerificationPageState extends State<VerificationPage> {
   Future<void> _loadData() async {
     if (!_liveRepo.isConfigured) {
       setState(() {
-        _errorMessage = 'Live Supabase client is not configured. Provide SUPABASE_ANON_KEY to view verification telemetry.';
+        _errorMessage =
+            'Live Supabase client is not configured. Provide SUPABASE_ANON_KEY to view verification telemetry.';
       });
       return;
     }
@@ -75,7 +93,11 @@ class _VerificationPageState extends State<VerificationPage> {
     });
 
     try {
-      final records = await _liveRepo.getRecentAttendance(limit: 150);
+      final records = await _liveRepo.getAttendanceForIstDay(
+        istDay: _isAllDates ? null : _selectedDate,
+        allDates: _isAllDates,
+        limit: 250,
+      );
       final reviews = await _reviewRepo.getReviews();
 
       _reviewsMap.clear();
@@ -151,13 +173,12 @@ class _VerificationPageState extends State<VerificationPage> {
     return rev == null || rev.status == ReviewStatus.pending;
   }).length;
 
-  int get _resolvedCount => _reviewsMap.values
-      .where(
-        (r) =>
-            r.status == ReviewStatus.resolved ||
-            r.status == ReviewStatus.dismissed,
-      )
-      .length;
+  int get _resolvedCount => _records.where((r) {
+    final rev = _reviewsMap[r.id];
+    return rev != null &&
+        (rev.status == ReviewStatus.resolved ||
+            rev.status == ReviewStatus.dismissed);
+  }).length;
 
   int get _locationUnavailableCount => _records
       .where(
@@ -276,7 +297,7 @@ class _VerificationPageState extends State<VerificationPage> {
           _buildSummaryCard(
             title: 'Pending Review',
             value: _pendingCount.toString(),
-            subtitle: 'Requires attention',
+            subtitle: 'Requires attention ($_dateScopeLabel)',
             tag: 'Anomalies detected',
             icon: Icons.flag_outlined,
             iconColor: AppColors.statusAmberText,
@@ -286,7 +307,7 @@ class _VerificationPageState extends State<VerificationPage> {
           _buildSummaryCard(
             title: 'Reviewed Decisions',
             value: _resolvedCount.toString(),
-            subtitle: 'Completed reviews',
+            subtitle: 'Completed for $_dateScopeLabel',
             tag: 'Audit determinations',
             icon: Icons.task_alt,
             iconColor: AppColors.statusGreenText,
@@ -296,7 +317,7 @@ class _VerificationPageState extends State<VerificationPage> {
           _buildSummaryCard(
             title: 'Location Unavailable',
             value: _locationUnavailableCount.toString(),
-            subtitle: 'Telemetry gaps flagged',
+            subtitle: 'Flagged for $_dateScopeLabel',
             tag: 'Phone GPS off/stale',
             icon: Icons.location_disabled,
             iconColor: AppColors.statusRedText,
@@ -399,11 +420,14 @@ class _VerificationPageState extends State<VerificationPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSlate,
+              Expanded(
+                child: Text(
+                  subtitle,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSlate,
+                  ),
                 ),
               ),
             ],
@@ -467,6 +491,9 @@ class _VerificationPageState extends State<VerificationPage> {
               ),
             ),
           ),
+
+          // Date Filter Dropdown
+          _buildDateFilterDropdown(),
 
           // Review Status Dropdown
           Container(
@@ -537,7 +564,10 @@ class _VerificationPageState extends State<VerificationPage> {
                 _searchQuery = '';
                 _selectedReviewFilter = ReviewFilter.all;
                 _selectedStatusFilter = null;
+                _selectedDate = null;
+                _isAllDates = false;
               });
+              _loadData();
             },
             icon: const Icon(
               Icons.filter_alt_off,
@@ -550,6 +580,86 @@ class _VerificationPageState extends State<VerificationPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDateFilterDropdown() {
+    String currentValue;
+    if (_isAllDates) {
+      currentValue = 'all';
+    } else if (_isTodaySelected) {
+      currentValue = 'today';
+    } else {
+      currentValue = 'custom';
+    }
+
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: currentValue,
+          icon: const Icon(
+            Icons.calendar_today,
+            size: 14,
+            color: AppColors.textSlate,
+          ),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textDark,
+          ),
+          items: [
+            const DropdownMenuItem(value: 'today', child: Text('Date: Today')),
+            DropdownMenuItem(
+              value: 'custom',
+              child: Text(
+                currentValue == 'custom'
+                    ? 'Date: ${AppDateTimeFormat.formatDate(_selectedDate!)}'
+                    : 'Pick Date...',
+              ),
+            ),
+            const DropdownMenuItem(value: 'all', child: Text('Date: All Dates')),
+          ],
+          onChanged: (val) async {
+            if (val == 'today') {
+              setState(() {
+                _isAllDates = false;
+                _selectedDate = null;
+              });
+              _loadData();
+            } else if (val == 'all') {
+              setState(() {
+                _isAllDates = true;
+                _selectedDate = null;
+              });
+              _loadData();
+            } else if (val == 'custom') {
+              final initial = _selectedDate ??
+                  AppDateTimeFormat.toIst(DateTime.now());
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: initial,
+                firstDate: DateTime(2025),
+                lastDate: DateTime(2030),
+                helpText: 'Select Review Date (IST)',
+              );
+              if (picked != null) {
+                setState(() {
+                  _isAllDates = false;
+                  _selectedDate = picked;
+                });
+                _loadData();
+              }
+            }
+          },
+        ),
       ),
     );
   }
@@ -788,7 +898,10 @@ class _VerificationPageState extends State<VerificationPage> {
                             // Scan Time
                             DataCell(
                               Text(
-                                AppDateTimeFormat.formatTime(rec.scannedAt),
+                                AppDateTimeFormat.formatScanTimeTable(
+                                  rec.scannedAt,
+                                  showDate: !_isTodaySelected,
+                                ),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontFamily: 'monospace',

@@ -482,7 +482,10 @@ class _VerificationReviewDrawerState extends State<VerificationReviewDrawer> {
                           const Divider(height: 18),
                           _buildDetailRow(
                             'Scan Timestamp',
-                            AppDateTimeFormat.formatDateTime(record.scannedAt),
+                            AppDateTimeFormat.formatDateTime12Hour(
+                              record.scannedAt,
+                              includeSeconds: true,
+                            ),
                           ),
                           if (record.latitude != null &&
                               record.longitude != null) ...[

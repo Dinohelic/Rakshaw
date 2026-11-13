@@ -251,6 +251,7 @@ class SupabaseLiveAttendanceRepository implements LiveAttendanceRepository {
   @override
   Future<List<LiveAttendanceRecord>> getAttendanceForIstDay({
     DateTime? istDay,
+    bool allDates = false,
     int limit = 1000,
   }) async {
     final client = _client;
@@ -260,18 +261,24 @@ class SupabaseLiveAttendanceRepository implements LiveAttendanceRepository {
       );
     }
 
-    final utcStart = AppDateTimeFormat.getIstDayStartInUtc(istDay);
-    final utcEnd = AppDateTimeFormat.getIstDayEndInUtc(istDay);
+    final targetIst = istDay ?? DateTime.now();
+    final istDateStr = AppDateTimeFormat.formatIstDateKey(targetIst);
+    final utcStart = AppDateTimeFormat.getIstDayStartInUtc(targetIst);
+    final utcEnd = AppDateTimeFormat.getIstDayEndInUtc(targetIst);
 
     try {
       try {
-        final List<dynamic> rows = await client
+        dynamic query = client
             .from(ApiEndpoints.tableAttendance)
             .select(
               '*, ${ApiEndpoints.tableStudents} (id, student_code, student_name, rfid_uid, school_id)',
-            )
-            .gte('scanned_at', utcStart.toIso8601String())
-            .lt('scanned_at', utcEnd.toIso8601String())
+            );
+
+        if (!allDates) {
+          query = query.eq('event_date', istDateStr);
+        }
+
+        final List<dynamic> rows = await query
             .order('scanned_at', ascending: false)
             .limit(limit);
 
@@ -293,13 +300,32 @@ class SupabaseLiveAttendanceRepository implements LiveAttendanceRepository {
           );
         }
 
-        final List<dynamic> attendanceRows = await client
+        dynamic attendanceQuery = client
             .from(ApiEndpoints.tableAttendance)
-            .select('*')
-            .gte('scanned_at', utcStart.toIso8601String())
-            .lt('scanned_at', utcEnd.toIso8601String())
-            .order('scanned_at', ascending: false)
-            .limit(limit);
+            .select('*');
+
+        if (!allDates) {
+          attendanceQuery = attendanceQuery.eq('event_date', istDateStr);
+        }
+
+        List<dynamic> attendanceRows;
+        try {
+          attendanceRows = await attendanceQuery
+              .order('scanned_at', ascending: false)
+              .limit(limit);
+        } catch (_) {
+          if (!allDates) {
+            attendanceRows = await client
+                .from(ApiEndpoints.tableAttendance)
+                .select('*')
+                .gte('scanned_at', utcStart.toIso8601String())
+                .lt('scanned_at', utcEnd.toIso8601String())
+                .order('scanned_at', ascending: false)
+                .limit(limit);
+          } else {
+            rethrow;
+          }
+        }
 
         final studentIds = attendanceRows
             .map((r) => (r as Map)['student_id']?.toString())
@@ -337,11 +363,11 @@ class SupabaseLiveAttendanceRepository implements LiveAttendanceRepository {
       }
     } on PostgrestException catch (e) {
       throw LiveAttendanceException(
-        'Database error querying today\'s attendance (${e.code}): ${e.message}',
+        'Database error querying attendance (${e.code}): ${e.message}',
         details: e.details?.toString(),
       );
     } catch (e) {
-      throw LiveAttendanceException('Failed to fetch today\'s attendance: $e');
+      throw LiveAttendanceException('Failed to fetch attendance: $e');
     }
   }
 

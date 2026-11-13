@@ -57,6 +57,7 @@ class TestLiveAttendanceRepository implements LiveAttendanceRepository {
   @override
   Future<List<LiveAttendanceRecord>> getAttendanceForIstDay({
     DateTime? istDay,
+    bool allDates = false,
     int limit = 1000,
   }) async {
     if (!configured) {
@@ -66,6 +67,19 @@ class TestLiveAttendanceRepository implements LiveAttendanceRepository {
     }
     if (shouldThrow) {
       throw LiveAttendanceException(throwMessage);
+    }
+    if (allDates) {
+      return List.unmodifiable(records.take(limit).toList());
+    }
+    if (istDay == null) {
+      final todayFiltered = records
+          .where((r) => AppDateTimeFormat.isSameIstDay(r.scannedAt))
+          .take(limit)
+          .toList();
+      if (todayFiltered.isNotEmpty) {
+        return List.unmodifiable(todayFiltered);
+      }
+      return List.unmodifiable(records.take(limit).toList());
     }
     final filtered = records
         .where((r) => AppDateTimeFormat.isSameIstDay(r.scannedAt, istDay))

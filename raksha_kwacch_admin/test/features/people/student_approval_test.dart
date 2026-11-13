@@ -465,27 +465,24 @@ void main() {
     );
 
     testWidgets(
-      'Approval filter on PeoplePage correctly filters students by approval status',
+      'Card Status filter on PeoplePage correctly filters students',
       (tester) async {
         tester.view.physicalSize = const Size(1280, 800);
         tester.view.devicePixelRatio = 1.0;
 
         await navigateToPeople(tester);
 
-        expect(find.text('Approval: All'), findsOneWidget);
+        expect(find.text('Card: All'), findsOneWidget);
+        expect(find.text('Strikes: All'), findsOneWidget);
 
-        // Filter by Pending
-        await tester.tap(find.text('Approval: All'));
+        // Filter by Active
+        await tester.tap(find.text('Card: All'));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Pending').last);
+        await tester.tap(find.text('Active').last);
         await tester.pumpAndSettle();
 
-        // In demo data, s3 (Rahul Kumar) and s8 (Sneha Reddy) are pending
-        expect(find.text('Rahul Kumar'), findsOneWidget);
-        expect(find.text('Sneha Reddy'), findsOneWidget);
-        // Aarav Sharma is approved, should not appear
-        expect(find.text('Aarav Sharma'), findsNothing);
+        expect(find.text('Aarav Sharma'), findsOneWidget);
 
         // Reset filter
         await tester.tap(find.widgetWithText(TextButton, 'Reset'));

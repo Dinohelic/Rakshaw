@@ -11,15 +11,24 @@ class PeopleController extends ChangeNotifier {
   }
 
   bool isLoading = false;
+  String? errorMessage;
   int currentTab = 0; // 0: Students, 1: Guardians, 2: Drivers
 
   List<Student> _allStudents = [];
   List<Guardian> _allGuardians = [];
   List<Driver> _allDrivers = [];
 
+  List<Student> get allStudents => List.unmodifiable(_allStudents);
+  List<Guardian> get allGuardians => List.unmodifiable(_allGuardians);
+  int get totalStudentCount => _allStudents.length;
+  int get blockedStudentCount =>
+      _allStudents.where((s) => s.isCardBlocked).length;
+
   String searchQuery = '';
 
   // Student Filters
+  String? cardStatusFilter; // null (All), 'active', 'blocked'
+  int? strikeCountFilter; // null (All), 0, 1, 2, 3
   String? studentFacultyFilter;
   TransportStatus? studentTransportStatusFilter;
   StudentApprovalStatus? studentApprovalStatusFilter;
@@ -40,13 +49,28 @@ class PeopleController extends ChangeNotifier {
   static const int pageSize = 10;
 
   Future<void> reloadStudents() async {
-    final results = await Future.wait([
-      _repository.getStudents(),
-      _repository.getGuardians(),
-    ]);
-    _allStudents = results[0] as List<Student>;
-    _allGuardians = results[1] as List<Guardian>;
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+
+    try {
+      final results = await Future.wait([
+        _repository.getStudents(),
+        _repository.getGuardians(),
+      ]);
+      _allStudents = results[0] as List<Student>;
+      _allGuardians = results[1] as List<Guardian>;
+    } catch (e) {
+      errorMessage = e
+          .toString()
+          .replaceAll('Exception: ', '')
+          .replaceAll('PostgrestException: ', '');
+      _allStudents = [];
+      _allGuardians = [];
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<Student> approveStudent(String studentId) async {
@@ -69,10 +93,10 @@ class PeopleController extends ChangeNotifier {
 
   Future<void> _loadData() async {
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
 
     try {
-      // For simplicity, loading all upfront in the demo
       final results = await Future.wait([
         _repository.getStudents(),
         _repository.getGuardians(),
@@ -82,6 +106,14 @@ class PeopleController extends ChangeNotifier {
       _allStudents = results[0] as List<Student>;
       _allGuardians = results[1] as List<Guardian>;
       _allDrivers = results[2] as List<Driver>;
+    } catch (e) {
+      errorMessage = e
+          .toString()
+          .replaceAll('Exception: ', '')
+          .replaceAll('PostgrestException: ', '');
+      _allStudents = [];
+      _allGuardians = [];
+      _allDrivers = [];
     } finally {
       isLoading = false;
       notifyListeners();
@@ -98,6 +130,22 @@ class PeopleController extends ChangeNotifier {
 
   void setSearchQuery(String query) {
     searchQuery = query;
+    currentPage = 1;
+    notifyListeners();
+  }
+
+  void setCardStatusFilter(String? status) {
+    if (status == null || status.isEmpty || status.toLowerCase() == 'all') {
+      cardStatusFilter = null;
+    } else {
+      cardStatusFilter = status.toLowerCase();
+    }
+    currentPage = 1;
+    notifyListeners();
+  }
+
+  void setStrikeCountFilter(int? strikes) {
+    strikeCountFilter = strikes;
     currentPage = 1;
     notifyListeners();
   }
@@ -145,6 +193,8 @@ class PeopleController extends ChangeNotifier {
 
   void _resetFiltersAndSearch() {
     searchQuery = '';
+    cardStatusFilter = null;
+    strikeCountFilter = null;
     studentFacultyFilter = null;
     studentTransportStatusFilter = null;
     studentApprovalStatusFilter = null;
@@ -219,9 +269,9 @@ class PeopleController extends ChangeNotifier {
       bool matchesSearch = true;
       if (searchQuery.isNotEmpty) {
         final q = searchQuery.toLowerCase();
-        matchesSearch =
-            s.name.toLowerCase().contains(q) ||
-            s.enrollmentNumber.toLowerCase().contains(q);
+        matchesSearch = s.name.toLowerCase().contains(q) ||
+            s.enrollmentNumber.toLowerCase().contains(q) ||
+            (s.rfidUid != null && s.rfidUid!.toLowerCase().contains(q));
       }
       bool matchesFaculty =
           studentFacultyFilter == null || s.faculty == studentFacultyFilter;
@@ -232,10 +282,26 @@ class PeopleController extends ChangeNotifier {
           studentApprovalStatusFilter == null ||
           s.approvalStatus == studentApprovalStatusFilter;
 
+      bool matchesCardStatus = true;
+      if (cardStatusFilter != null) {
+        if (cardStatusFilter == 'active') {
+          matchesCardStatus = !s.isCardBlocked;
+        } else if (cardStatusFilter == 'blocked') {
+          matchesCardStatus = s.isCardBlocked;
+        }
+      }
+
+      bool matchesStrikeCount = true;
+      if (strikeCountFilter != null) {
+        matchesStrikeCount = s.activeStrikes == strikeCountFilter;
+      }
+
       return matchesSearch &&
           matchesFaculty &&
           matchesStatus &&
-          matchesApproval;
+          matchesApproval &&
+          matchesCardStatus &&
+          matchesStrikeCount;
     }).toList();
 
     if (sortColumn != null) {
@@ -243,8 +309,15 @@ class PeopleController extends ChangeNotifier {
         int cmp = 0;
         if (sortColumn == 'Name') {
           cmp = a.name.compareTo(b.name);
-        } else if (sortColumn == 'Enrollment No.') {
+        } else if (sortColumn == 'Enrollment No.' ||
+            sortColumn == 'Student Code') {
           cmp = a.enrollmentNumber.compareTo(b.enrollmentNumber);
+        } else if (sortColumn == 'Strikes' || sortColumn == 'Active Strikes') {
+          cmp = a.activeStrikes.compareTo(b.activeStrikes);
+        } else if (sortColumn == 'Transport Status' ||
+            sortColumn == 'Card Status' ||
+            sortColumn == 'Status') {
+          cmp = (a.isCardBlocked ? 1 : 0).compareTo(b.isCardBlocked ? 1 : 0);
         }
         return sortAscending ? cmp : -cmp;
       });
@@ -320,4 +393,19 @@ class PeopleController extends ChangeNotifier {
       _allStudents.map((e) => e.faculty).toSet().toList()..sort();
   List<String> get availableRoutes =>
       _allDrivers.map((e) => e.routeCode).toSet().toList()..sort();
+
+  bool _isDisposed = false;
+
+  @override
+  void notifyListeners() {
+    if (!_isDisposed) {
+      super.notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
 }

@@ -3,18 +3,26 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/config/supabase_config.dart';
 import '../../../../shared/widgets/app_button.dart';
-import '../../../../shared/widgets/app_status_badge.dart';
 import '../../../../shared/widgets/app_data_table.dart';
 import '../../../../shared/widgets/app_filter_bar.dart';
-import '../../domain/people_models.dart';
+import '../../../../shared/widgets/app_status_badge.dart';
 import '../../data/demo_people_repository.dart';
+import '../../data/supabase_people_repository.dart';
+import '../../domain/people_models.dart';
+import '../../domain/people_repository.dart';
 import '../people_controller.dart';
-import '../widgets/student_details_drawer.dart';
 import '../widgets/add_student_form.dart';
+import '../widgets/student_details_drawer.dart';
 
 class PeoplePage extends StatefulWidget {
-  const PeoplePage({super.key});
+  final PeopleRepository? repository;
+
+  /// Global default repository override (useful for testing).
+  static PeopleRepository? defaultRepository;
+
+  const PeoplePage({super.key, this.repository});
 
   @override
   State<PeoplePage> createState() => _PeoplePageState();
@@ -22,7 +30,7 @@ class PeoplePage extends StatefulWidget {
 
 class _PeoplePageState extends State<PeoplePage> {
   late final PeopleController _controller;
-  late final DemoPeopleRepository _repository;
+  late final PeopleRepository _repository;
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _horizontalScrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -30,10 +38,17 @@ class _PeoplePageState extends State<PeoplePage> {
   Student? _editingStudent;
   bool _isAddingStudent = false;
 
+  PeopleRepository get _effectiveRepository {
+    if (widget.repository != null) return widget.repository!;
+    if (PeoplePage.defaultRepository != null) return PeoplePage.defaultRepository!;
+    if (SupabaseConfig.isConfigured) return SupabasePeopleRepository.shared;
+    return DemoPeopleRepository();
+  }
+
   @override
   void initState() {
     super.initState();
-    _repository = DemoPeopleRepository();
+    _repository = _effectiveRepository;
     _controller = PeopleController(_repository);
     _controller.addListener(_onControllerUpdate);
   }
@@ -56,11 +71,84 @@ class _PeoplePageState extends State<PeoplePage> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
+  void _showSisRestrictionDialog({String action = 'Adding new students'}) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_outline, color: AppColors.brandRed, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'SIS Managed Directory',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$action is restricted in the Transport Admin Portal.\n\nStudent enrollment records, academic programs, and physical RFID transport card allocations are managed and synchronized directly via the University Registrar SIS (Student Information System).',
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.5,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: AppColors.textSlate,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'To register a new student or re-assign an RFID transport card, please submit a service request through the University Registrar Transport Office.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSlate,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brandRed,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Understood'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openStudentDetails(String studentId) {
     setState(() {
       _selectedStudentId = studentId;
     });
-    // Ensure the scaffold has rebuilt with the drawer in the widget tree
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scaffoldKey.currentState?.openEndDrawer();
     });
@@ -86,6 +174,33 @@ class _PeoplePageState extends State<PeoplePage> {
     });
   }
 
+  void _handleCsvExport() {
+    if (_controller.currentTab == 0) {
+      final buffer = StringBuffer();
+      buffer.writeln(
+        'Student Code,Student Name,RFID Card UID,Active Strikes,Card Status,Route,Bus',
+      );
+      for (final s in _controller.filteredData.cast<Student>()) {
+        buffer.writeln(
+          '${s.studentCode},"${s.name}",${s.maskedRfid},${s.strikeRatio},${s.isCardBlocked ? "Blocked" : "Active"},${s.routeCode},${s.busCode}',
+        );
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Exported ${_controller.totalItems} student records to CSV.',
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Exported 0 guardian records to CSV.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,11 +213,7 @@ class _PeoplePageState extends State<PeoplePage> {
               availableRoutes: _controller.availableRoutes.isEmpty
                   ? ['RT-A', 'RT-B', 'RT-C']
                   : _controller.availableRoutes,
-              availableBuses: [
-                'BUS-14',
-                'BUS-19',
-                'BUS-22',
-              ], // Normally fetched, hardcoded for demo form simplicity
+              availableBuses: const ['BUS-14', 'BUS-19', 'BUS-22'],
               onSuccess: () {
                 final isEdit = _editingStudent != null;
                 _closeDrawer();
@@ -137,9 +248,58 @@ class _PeoplePageState extends State<PeoplePage> {
           Expanded(
             child: _controller.isLoading
                 ? const AppLoadingState()
-                : _buildContent(),
+                : _controller.errorMessage != null
+                    ? _buildErrorState()
+                    : _buildContent(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.cloud_off_outlined,
+              size: 48,
+              color: AppColors.textMuted,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Unable to Load Student Directory',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _controller.errorMessage!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSlate,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Retry Connection'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brandRed,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              onPressed: _controller.reloadStudents,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -154,7 +314,10 @@ class _PeoplePageState extends State<PeoplePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  runSpacing: 4,
                   children: [
                     const Text(
                       'People',
@@ -164,23 +327,22 @@ class _PeoplePageState extends State<PeoplePage> {
                         color: AppColors.textDark,
                       ),
                     ),
-                    const SizedBox(width: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.demoBackground,
-                        border: Border.all(color: AppColors.demoBorder),
+                        color: AppColors.brandLightRed,
+                        border: Border.all(color: AppColors.brandBorderRed),
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      child: const Text(
-                        'Demo data',
-                        style: TextStyle(
-                          color: AppColors.demoText,
+                      child: Text(
+                        '${_controller.totalStudentCount} Active',
+                        style: const TextStyle(
+                          color: AppColors.brandRed,
                           fontSize: 11,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -188,7 +350,7 @@ class _PeoplePageState extends State<PeoplePage> {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Manage university students, guardians, and drivers.',
+                  'View registered students, RFID cards, guardians, and transport restrictions.',
                   style: TextStyle(fontSize: 14, color: AppColors.textSlate),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -200,11 +362,19 @@ class _PeoplePageState extends State<PeoplePage> {
             label: _getAddButtonLabel(),
             icon: Icons.add,
             onPressed: () {
-              if (_controller.currentTab == 0) {
-                _openAddStudentForm();
+              if (_repository is DemoPeopleRepository) {
+                if (_controller.currentTab == 0) {
+                  _openAddStudentForm();
+                } else {
+                  _showComingSoonSnackBar(
+                    'Adding guardian records is managed via SIS.',
+                  );
+                }
               } else {
-                _showComingSoonSnackBar(
-                  'Adding records is coming in the next development task.',
+                _showSisRestrictionDialog(
+                  action: _controller.currentTab == 0
+                      ? 'Adding new students'
+                      : 'Adding new guardians',
                 );
               }
             },
@@ -220,8 +390,6 @@ class _PeoplePageState extends State<PeoplePage> {
         return 'Add Student';
       case 1:
         return 'Add Guardian';
-      case 2:
-        return 'Add Driver';
       default:
         return 'Add';
     }
@@ -255,18 +423,6 @@ class _PeoplePageState extends State<PeoplePage> {
               }
             },
           ),
-          const SizedBox(width: 32),
-          _TabItem(
-            title: 'Drivers',
-            isActive: _controller.currentTab == 2,
-            onTap: () {
-              _searchController.clear();
-              _controller.setTab(2);
-              if (_horizontalScrollController.hasClients) {
-                _horizontalScrollController.jumpTo(0);
-              }
-            },
-          ),
         ],
       ),
     );
@@ -278,43 +434,28 @@ class _PeoplePageState extends State<PeoplePage> {
     if (_controller.currentTab == 0) {
       actions = [
         _buildDropdown<String?>(
-          value: _controller.studentFacultyFilter,
-          hint: 'Faculty: All',
-          width: 140,
-          items: [
-            const DropdownMenuItem(value: null, child: Text('Faculty: All')),
-            ..._controller.availableFaculties.map(
-              (f) => DropdownMenuItem(value: f, child: Text(f)),
-            ),
-          ],
-          onChanged: _controller.setStudentFacultyFilter,
-        ),
-        _buildDropdown<StudentApprovalStatus?>(
-          value: _controller.studentApprovalStatusFilter,
-          hint: 'Approval: All',
+          value: _controller.cardStatusFilter,
+          hint: 'Card: All',
           width: 130,
-          items: [
-            const DropdownMenuItem(value: null, child: Text('Approval: All')),
-            ...StudentApprovalStatus.values.map(
-              (s) => DropdownMenuItem(
-                value: s,
-                child: Text(s.name[0].toUpperCase() + s.name.substring(1)),
-              ),
-            ),
+          items: const [
+            DropdownMenuItem(value: null, child: Text('Card: All')),
+            DropdownMenuItem(value: 'active', child: Text('Active')),
+            DropdownMenuItem(value: 'blocked', child: Text('Blocked')),
           ],
-          onChanged: _controller.setStudentApprovalStatusFilter,
+          onChanged: _controller.setCardStatusFilter,
         ),
-        _buildDropdown<TransportStatus?>(
-          value: _controller.studentTransportStatusFilter,
-          hint: 'Status: All',
-          width: 125,
-          items: [
-            const DropdownMenuItem(value: null, child: Text('Status: All')),
-            ...TransportStatus.values.map(
-              (s) => DropdownMenuItem(value: s, child: Text(s.name)),
-            ),
+        _buildDropdown<int?>(
+          value: _controller.strikeCountFilter,
+          hint: 'Strikes: All',
+          width: 140,
+          items: const [
+            DropdownMenuItem(value: null, child: Text('Strikes: All')),
+            DropdownMenuItem(value: 0, child: Text('0/3 Strikes')),
+            DropdownMenuItem(value: 1, child: Text('1/3 Strike')),
+            DropdownMenuItem(value: 2, child: Text('2/3 Strikes')),
+            DropdownMenuItem(value: 3, child: Text('3/3 Strikes')),
           ],
-          onChanged: _controller.setStudentTransportStatusFilter,
+          onChanged: _controller.setStrikeCountFilter,
         ),
       ];
     } else if (_controller.currentTab == 1) {
@@ -332,33 +473,6 @@ class _PeoplePageState extends State<PeoplePage> {
           onChanged: _controller.setGuardianVerificationStatusFilter,
         ),
       ];
-    } else if (_controller.currentTab == 2) {
-      actions = [
-        _buildDropdown<OperationalStatus?>(
-          value: _controller.driverOperationalStatusFilter,
-          hint: 'Status: All',
-          width: 130,
-          items: [
-            const DropdownMenuItem(value: null, child: Text('Status: All')),
-            ...OperationalStatus.values.map(
-              (s) => DropdownMenuItem(value: s, child: Text(s.name)),
-            ),
-          ],
-          onChanged: _controller.setDriverOperationalStatusFilter,
-        ),
-        _buildDropdown<String?>(
-          value: _controller.driverRouteFilter,
-          hint: 'Route: All',
-          width: 120,
-          items: [
-            const DropdownMenuItem(value: null, child: Text('Route: All')),
-            ..._controller.availableRoutes.map(
-              (r) => DropdownMenuItem(value: r, child: Text(r)),
-            ),
-          ],
-          onChanged: _controller.setDriverRouteFilter,
-        ),
-      ];
     }
 
     actions.add(
@@ -373,7 +487,7 @@ class _PeoplePageState extends State<PeoplePage> {
     );
 
     return AppFilterBar(
-      searchHint: 'Search by name or ID...',
+      searchHint: 'Search by name, ID, or RFID...',
       searchController: _searchController,
       onSearchChanged: _controller.setSearchQuery,
       actions: actions,
@@ -427,20 +541,9 @@ class _PeoplePageState extends State<PeoplePage> {
   }
 
   Widget _buildTableHeaderBar() {
-    String title;
-    switch (_controller.currentTab) {
-      case 0:
-        title = 'Enrolled Students';
-        break;
-      case 1:
-        title = 'Guardians & Contacts';
-        break;
-      case 2:
-        title = 'Registered Drivers & Staff';
-        break;
-      default:
-        title = 'People Records';
-    }
+    final String title = _controller.currentTab == 0
+        ? 'Enrolled Students'
+        : 'Guardians & Contacts';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -512,11 +615,7 @@ class _PeoplePageState extends State<PeoplePage> {
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
-            onPressed: () {
-              _showComingSoonSnackBar(
-                'CSV Export is coming in a future update.',
-              );
-            },
+            onPressed: _handleCsvExport,
           ),
         ],
       ),
@@ -527,7 +626,60 @@ class _PeoplePageState extends State<PeoplePage> {
     final data = _controller.paginatedData;
 
     if (data.isEmpty) {
-      return AppEmptyState(
+      if (_controller.currentTab == 1) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.border),
+          ),
+          padding: const EdgeInsets.all(48),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Icon(
+                  Icons.family_restroom_outlined,
+                  size: 28,
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'No Guardian Contact Records Linked',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const SizedBox(
+                width: 480,
+                child: Text(
+                  'Guardian associations are synchronized via the University Registrar SIS. No active parent contacts have been registered in this transport cycle.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSlate,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return const AppEmptyState(
         title: 'No records match your search',
         message: 'Try adjusting your filters or search query.',
       );
@@ -540,43 +692,45 @@ class _PeoplePageState extends State<PeoplePage> {
       columns = [
         const _TableColumn(
           title: 'Name',
-          minWidth: 180,
-          flex: 3.0,
+          minWidth: 170,
+          flex: 2.8,
           isSortable: true,
         ),
         const _TableColumn(
           title: 'Enrollment No.',
-          minWidth: 165,
-          flex: 2.5,
+          minWidth: 130,
+          flex: 2.0,
           isSortable: true,
         ),
-        const _TableColumn(title: 'Faculty', minWidth: 170, flex: 2.5),
-        const _TableColumn(title: 'Programme', minWidth: 120, flex: 2.0),
-        const _TableColumn(title: 'Semester', minWidth: 80, flex: 1.2),
-        const _TableColumn(title: 'Route', minWidth: 80, flex: 1.2),
-        const _TableColumn(title: 'Bus', minWidth: 85, flex: 1.2),
-        const _TableColumn(title: 'Approval', minWidth: 110, flex: 1.8),
-        const _TableColumn(title: 'Transport Status', minWidth: 135, flex: 2.0),
+        const _TableColumn(
+          title: 'RFID UID',
+          minWidth: 130,
+          flex: 2.0,
+        ),
+        const _TableColumn(
+          title: 'Strikes',
+          minWidth: 110,
+          flex: 1.6,
+          isSortable: true,
+        ),
+        const _TableColumn(
+          title: 'Card Status',
+          minWidth: 135,
+          flex: 2.0,
+          isSortable: true,
+        ),
+        const _TableColumn(
+          title: 'Faculty',
+          minWidth: 170,
+          flex: 2.5,
+        ),
+        const _TableColumn(
+          title: 'Route',
+          minWidth: 90,
+          flex: 1.3,
+        ),
       ];
       getCells = (item) => _buildStudentCells(item as Student);
-    } else if (_controller.currentTab == 1) {
-      columns = [
-        const _TableColumn(
-          title: 'Name',
-          minWidth: 180,
-          flex: 3.0,
-          isSortable: true,
-        ),
-        const _TableColumn(title: 'Linked Student', minWidth: 160, flex: 2.5),
-        const _TableColumn(title: 'Relationship', minWidth: 120, flex: 2.0),
-        const _TableColumn(title: 'Contact', minWidth: 180, flex: 3.0),
-        const _TableColumn(
-          title: 'Verification Status',
-          minWidth: 145,
-          flex: 2.2,
-        ),
-      ];
-      getCells = (item) => _buildGuardianCells(item as Guardian);
     } else {
       columns = [
         const _TableColumn(
@@ -586,21 +740,27 @@ class _PeoplePageState extends State<PeoplePage> {
           isSortable: true,
         ),
         const _TableColumn(
-          title: 'Driver ID',
+          title: 'Linked Student',
+          minWidth: 160,
+          flex: 2.5,
+        ),
+        const _TableColumn(
+          title: 'Relationship',
           minWidth: 120,
           flex: 2.0,
-          isSortable: true,
         ),
-        const _TableColumn(title: 'Assigned Bus', minWidth: 120, flex: 2.0),
-        const _TableColumn(title: 'Assigned Route', minWidth: 120, flex: 2.0),
-        const _TableColumn(title: 'Contact', minWidth: 140, flex: 2.2),
         const _TableColumn(
-          title: 'Operational Status',
+          title: 'Contact',
+          minWidth: 180,
+          flex: 3.0,
+        ),
+        const _TableColumn(
+          title: 'Verification Status',
           minWidth: 145,
           flex: 2.2,
         ),
       ];
-      getCells = (item) => _buildDriverCells(item as Driver);
+      getCells = (item) => _buildGuardianCells(item as Guardian);
     }
 
     return Container(
@@ -918,6 +1078,44 @@ class _PeoplePageState extends State<PeoplePage> {
           letterSpacing: 0.3,
         ),
       ),
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.credit_card_outlined,
+            size: 14,
+            color: AppColors.textMuted,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              student.maskedRfid,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontFamily: 'monospace',
+                color: AppColors.textDark,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+      AppStatusBadge(
+        label: student.strikeRatio,
+        type: student.activeStrikes >= 3
+            ? AppStatusType.error
+            : (student.activeStrikes > 0
+                ? AppStatusType.warning
+                : AppStatusType.neutral),
+      ),
+      AppStatusBadge(
+        label: student.isCardBlocked ? 'CARD BLOCKED' : 'ACTIVE',
+        type: student.isCardBlocked
+            ? AppStatusType.error
+            : AppStatusType.success,
+      ),
       Tooltip(
         message: student.faculty,
         child: Text(
@@ -928,17 +1126,6 @@ class _PeoplePageState extends State<PeoplePage> {
         ),
       ),
       Text(
-        student.programme,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 13, color: AppColors.textDark),
-      ),
-      Text(
-        'Sem ${student.semester}',
-        maxLines: 1,
-        style: const TextStyle(fontSize: 13, color: AppColors.textSlate),
-      ),
-      Text(
         student.routeCode,
         maxLines: 1,
         style: const TextStyle(
@@ -947,17 +1134,6 @@ class _PeoplePageState extends State<PeoplePage> {
           color: AppColors.textDark,
         ),
       ),
-      Text(
-        student.busCode,
-        maxLines: 1,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textDark,
-        ),
-      ),
-      _buildApprovalBadge(student.approvalStatus),
-      _buildStatusBadge(student.transportStatus.name),
     ];
   }
 
@@ -1019,75 +1195,18 @@ class _PeoplePageState extends State<PeoplePage> {
               color: AppColors.textDark,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            guardian.email,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-          ),
+          if (guardian.email.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              guardian.email,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
+          ],
         ],
       ),
       _buildStatusBadge(guardian.verificationStatus.name),
-    ];
-  }
-
-  List<Widget> _buildDriverCells(Driver driver) {
-    return [
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildAvatar(driver.name),
-          const SizedBox(width: 10),
-          Flexible(
-            child: Text(
-              driver.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-          ),
-        ],
-      ),
-      Text(
-        driver.driverId,
-        maxLines: 1,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textSlate,
-          fontFamily: 'monospace',
-          letterSpacing: 0.3,
-        ),
-      ),
-      Text(
-        driver.busCode,
-        maxLines: 1,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textDark,
-        ),
-      ),
-      Text(
-        driver.routeCode,
-        maxLines: 1,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textDark,
-        ),
-      ),
-      Text(
-        driver.phone,
-        maxLines: 1,
-        style: const TextStyle(fontSize: 13, color: AppColors.textDark),
-      ),
-      _buildStatusBadge(driver.operationalStatus.name),
     ];
   }
 
@@ -1106,26 +1225,6 @@ class _PeoplePageState extends State<PeoplePage> {
     return Align(
       alignment: Alignment.centerLeft,
       child: AppStatusBadge(label: statusString.toUpperCase(), type: type),
-    );
-  }
-
-  Widget _buildApprovalBadge(StudentApprovalStatus status) {
-    AppStatusType type;
-    switch (status) {
-      case StudentApprovalStatus.approved:
-        type = AppStatusType.success;
-        break;
-      case StudentApprovalStatus.pending:
-        type = AppStatusType.warning;
-        break;
-      case StudentApprovalStatus.rejected:
-        type = AppStatusType.error;
-        break;
-    }
-
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: AppStatusBadge(label: status.name.toUpperCase(), type: type),
     );
   }
 
@@ -1151,7 +1250,7 @@ class _PeoplePageState extends State<PeoplePage> {
               _openStudentDetails(item.id);
             } else {
               _showComingSoonSnackBar(
-                'Viewing and editing records is coming in the next development task.',
+                'Guardian details are synchronized via SIS.',
               );
             }
           },
@@ -1171,11 +1270,19 @@ class _PeoplePageState extends State<PeoplePage> {
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           onPressed: () {
-            if (item is Student) {
-              _openAddStudentForm(student: item);
+            if (_repository is DemoPeopleRepository) {
+              if (item is Student) {
+                _openAddStudentForm(student: item);
+              } else {
+                _showComingSoonSnackBar(
+                  'Editing guardian records is managed via SIS.',
+                );
+              }
             } else {
-              _showComingSoonSnackBar(
-                'Viewing and editing records is coming in the next development task.',
+              _showSisRestrictionDialog(
+                action: item is Student
+                    ? 'Editing student records'
+                    : 'Editing guardian records',
               );
             }
           },

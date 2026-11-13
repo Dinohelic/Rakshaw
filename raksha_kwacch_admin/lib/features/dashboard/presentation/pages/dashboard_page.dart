@@ -635,7 +635,7 @@ class _HardwareActivityCard extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        AppDateTimeFormat.formatTime(unit.lastSeenAt),
+                        AppDateTimeFormat.formatScanTime(unit.lastSeenAt),
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSlate,
@@ -852,7 +852,7 @@ class _NeedsAttentionCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            AppDateTimeFormat.formatTime(rec.scannedAt),
+                            AppDateTimeFormat.formatScanTimeTable(rec.scannedAt),
                             style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.textSlate,

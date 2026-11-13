@@ -43,7 +43,9 @@ void main() {
 
       expect(find.text('People'), findsAtLeastNWidgets(1));
       expect(
-        find.text('Manage university students, guardians, and drivers.'),
+        find.text(
+          'View registered students, RFID cards, guardians, and transport restrictions.',
+        ),
         findsOneWidget,
       );
 
@@ -51,7 +53,7 @@ void main() {
     });
 
     testWidgets(
-      'Switching tabs changes the visible table columns and Add New label',
+      'Switching tabs changes the visible table columns and Add New label, with Drivers tab hidden',
       (tester) async {
         tester.view.physicalSize = const Size(1200, 800);
         tester.view.devicePixelRatio = 1.0;
@@ -62,6 +64,9 @@ void main() {
         expect(find.text('Add Student'), findsOneWidget);
         expect(find.text('FACULTY'), findsOneWidget);
 
+        // Verify Drivers tab is completely hidden
+        expect(find.widgetWithText(InkWell, 'Drivers'), findsNothing);
+
         // Tap Guardians
         await tester.tap(find.text('Guardians').last);
         await tester.pumpAndSettle();
@@ -70,15 +75,6 @@ void main() {
 
         expect(find.text('Add Guardian'), findsOneWidget);
         expect(find.text('RELATIONSHIP'), findsOneWidget);
-
-        // Tap Drivers
-        await tester.tap(find.text('Drivers').last);
-        await tester.pumpAndSettle();
-        await tester.pump(const Duration(milliseconds: 500));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Add Driver'), findsOneWidget);
-        expect(find.text('DRIVER ID'), findsOneWidget);
 
         addTearDown(tester.view.resetPhysicalSize);
       },
@@ -125,28 +121,24 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
     });
 
-    testWidgets('Applying Faculty filter reduces rows', (tester) async {
+    testWidgets('Applying Card Status filter reduces rows', (tester) async {
       tester.view.physicalSize = const Size(1200, 800);
       tester.view.devicePixelRatio = 1.0;
 
       await navigateToPeople(tester);
 
-      // Initial rows logic: Priya Patel is Medicine
-      expect(find.text('Priya Patel'), findsOneWidget);
-      // Aarav Sharma is Engineering
-      expect(find.text('Aarav Sharma'), findsOneWidget);
+      expect(find.text('Card: All'), findsOneWidget);
+      expect(find.text('Strikes: All'), findsOneWidget);
 
       // Open Dropdown
-      await tester.tap(find.text('Faculty: All'));
+      await tester.tap(find.text('Card: All'));
       await tester.pumpAndSettle();
 
-      // Select Medicine
-      await tester.tap(find.text('Medicine').last);
+      // Select Active
+      await tester.tap(find.text('Active').last);
       await tester.pumpAndSettle();
 
-      // Aarav should be gone
-      expect(find.text('Aarav Sharma'), findsNothing);
-      expect(find.text('Priya Patel'), findsOneWidget);
+      expect(find.text('Aarav Sharma'), findsOneWidget);
 
       addTearDown(tester.view.resetPhysicalSize);
     });

@@ -14,9 +14,11 @@ abstract class LiveAttendanceRepository {
   /// Subscribes to real-time additions and updates from the live `attendance` table.
   Stream<List<LiveAttendanceRecord>> streamRecentAttendance({int limit = 100});
 
-  /// Fetches attendance records for a specific IST calendar day (defaults to today).
+  /// Fetches attendance records for a specific IST calendar day (defaults to today),
+  /// or for [allDates] when true.
   Future<List<LiveAttendanceRecord>> getAttendanceForIstDay({
     DateTime? istDay,
+    bool allDates = false,
     int limit = 1000,
   });
 

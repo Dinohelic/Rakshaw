@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/auth/admin_auth_repository.dart';
 import '../../../core/auth/admin_auth_state.dart';
 import '../../../core/auth/supabase_admin_auth_repository.dart';
+import '../../../core/utils/app_date_time_format.dart';
 import '../../people/domain/people_models.dart';
 import '../../people/domain/people_repository.dart';
 import '../data/supabase_attendance_review_repository.dart';
@@ -110,6 +111,48 @@ class AttendanceController extends ChangeNotifier {
   LiveVerificationStatus? _liveVerificationStatusFilter;
   LiveVerificationStatus? get liveVerificationStatusFilter =>
       _liveVerificationStatusFilter;
+
+  // Date Filtering (defaults to Today IST)
+  DateTime? _selectedDate;
+  bool _isAllDates = false;
+
+  DateTime? get selectedDate => _selectedDate;
+  bool get isAllDates => _isAllDates;
+  bool get isTodaySelected =>
+      !_isAllDates &&
+      (_selectedDate == null ||
+          AppDateTimeFormat.isSameIstDay(_selectedDate!));
+
+  String get dateFilterLabel {
+    if (_isAllDates) return 'All Dates';
+    if (_selectedDate == null ||
+        AppDateTimeFormat.isSameIstDay(_selectedDate!)) {
+      return 'Today';
+    }
+    return AppDateTimeFormat.formatDate(_selectedDate!);
+  }
+
+  void selectToday() {
+    _isAllDates = false;
+    _selectedDate = null;
+    fetchLiveRecords();
+  }
+
+  void setSelectedDate(DateTime date) {
+    _isAllDates = false;
+    _selectedDate = date;
+    fetchLiveRecords();
+  }
+
+  void setAllDates() {
+    _isAllDates = true;
+    _selectedDate = null;
+    fetchLiveRecords();
+  }
+
+  void clearDateFilter() {
+    selectToday();
+  }
 
   AttendanceController({
     required this.attendanceRepository,
@@ -351,7 +394,8 @@ class AttendanceController extends ChangeNotifier {
   Future<void> fetchLiveRecords() async {
     if (liveAttendanceRepository == null ||
         !liveAttendanceRepository!.isConfigured) {
-      _liveHistoryError = 'Live Supabase client is not configured. Provide SUPABASE_ANON_KEY to enable live mode.';
+      _liveHistoryError =
+          'Live Supabase client is not configured. Provide SUPABASE_ANON_KEY to enable live mode.';
       notifyListeners();
       return;
     }
@@ -361,8 +405,17 @@ class AttendanceController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final records = await liveAttendanceRepository!.getRecentAttendance();
-      _mergeRecords(records);
+      final records = await liveAttendanceRepository!.getAttendanceForIstDay(
+        istDay: _isAllDates ? null : _selectedDate,
+        allDates: _isAllDates,
+      );
+      final List<LiveAttendanceRecord> recordsWithReviews = records.map((r) {
+        final cachedReview =
+            r.review ??
+            SupabaseAttendanceReviewRepository.shared.getCachedReview(r.id);
+        return r.copyWith(review: cachedReview);
+      }).toList();
+      _liveRecords = recordsWithReviews;
       _liveHistoryError = null;
     } catch (e) {
       _liveHistoryError = e.toString().replaceAll('Exception: ', '');
@@ -387,7 +440,19 @@ class AttendanceController extends ChangeNotifier {
           .streamRecentAttendance()
           .listen(
             (records) {
-              _mergeRecords(records);
+              final relevantRecords = (_selectedDate == null || _isAllDates)
+                  ? records
+                  : records
+                      .where(
+                        (r) => AppDateTimeFormat.isSameIstDay(
+                          r.scannedAt,
+                          _selectedDate!,
+                        ),
+                      )
+                      .toList();
+              if (relevantRecords.isNotEmpty) {
+                _mergeRecords(relevantRecords);
+              }
               _isRealtimeActive = true;
               _liveRealtimeError = null;
               notifyListeners();
@@ -515,6 +580,11 @@ class AttendanceController extends ChangeNotifier {
     _busFilter = null;
     _liveEventTypeFilter = null;
     _liveVerificationStatusFilter = null;
+    _isAllDates = false;
+    _selectedDate = null;
+    if (_isLiveHardwareMode) {
+      fetchLiveRecords();
+    }
     notifyListeners();
   }
 

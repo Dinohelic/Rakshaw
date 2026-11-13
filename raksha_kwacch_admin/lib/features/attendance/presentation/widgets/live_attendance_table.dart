@@ -27,6 +27,7 @@ class LiveAttendanceTable extends StatelessWidget {
   final String? historyErrorMessage;
   final String? realtimeErrorMessage;
   final bool isRealtimeActive;
+  final bool showDate;
   final VoidCallback onRetry;
   final VoidCallback? onRetryRealtime;
   final ValueChanged<LiveAttendanceRecord>? onReviewRecord;
@@ -39,6 +40,7 @@ class LiveAttendanceTable extends StatelessWidget {
     this.historyErrorMessage,
     this.realtimeErrorMessage,
     this.isRealtimeActive = false,
+    this.showDate = false,
     required this.onRetry,
     this.onRetryRealtime,
     this.onReviewRecord,
@@ -47,7 +49,8 @@ class LiveAttendanceTable extends StatelessWidget {
   String? get effectiveHistoryError => historyErrorMessage ?? errorMessage;
   String? get effectiveRealtimeError => realtimeErrorMessage;
 
-  String _formatTime(DateTime dt) => AppDateTimeFormat.formatTime(dt);
+  String _formatTime(DateTime dt) =>
+      AppDateTimeFormat.formatScanTimeTable(dt, showDate: showDate);
 
   AppStatusType _getVerificationBadgeType(LiveVerificationStatus status) {
     switch (status) {
@@ -232,7 +235,7 @@ class LiveAttendanceTable extends StatelessWidget {
     }
 
     const columns = [
-      _TableColumn(title: 'Scanned At', minWidth: 100, flex: 1.3),
+      _TableColumn(title: 'Scanned At', minWidth: 140, flex: 1.5),
       _TableColumn(title: 'Student Profile', minWidth: 170, flex: 2.4),
       _TableColumn(title: 'Event Type', minWidth: 130, flex: 1.8),
       _TableColumn(
