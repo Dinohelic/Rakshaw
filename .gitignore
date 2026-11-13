@@ -1,11 +1,43 @@
 # macOS
 .DS_Store
+**/.DS_Store
 
-# Local developer configuration (do not commit secrets)
+# Local developer configuration & credentials (do not commit secrets)
 config/dev.json
 config/*.local.json
 raksha_kwacch_admin/config/dev.json
 raksha_kwacch_admin/config/*.local.json
+*.local.json
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# Keys, Certificates, and Keystores
+*.pem
+*.p12
+*.pfx
+*.key
+*.keystore
+*.jks
+key.properties
+id_rsa*
+id_ed25519*
+
+# Database dumps and local backup directories
+*.dump
+*.backup
+*.sql.gz
+*.tar.gz
+backups/
+**/backups/
+
+# Supabase CLI local tokens and temporary cache
+.temp/
+supabase/.temp/
+**/.temp/
 
 # Flutter/Dart build and tool directories
 .dart_tool/
@@ -23,13 +55,19 @@ coverage/
 # Android Studio / IntelliJ / Miscellaneous
 *.class
 *.log
+*serial*.log
+*monitor*.log
 *.pyc
 *.swp
 *.iml
 .idea/
 
+# Firmware / Arduino build artifacts & caches
+*.bin
+*.elf
+*.hex
+*.eep
+
 # Backups and temporary files
 *.orig
 *.bak
-.temp/
-supabase/.temp/

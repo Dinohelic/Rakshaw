@@ -47,6 +47,27 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 
-# Local developer configuration
+# Local developer configuration & credentials
 config/dev.json
 config/*.local.json
+*.local.json
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+
+# Keys, Keystores, and Credentials
+*.pem
+*.p12
+*.pfx
+*.key
+*.keystore
+*.jks
+key.properties
+
+# Database dumps & backups
+*.dump
+*.backup
+*.sql.gz
+backups/
