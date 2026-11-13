@@ -93,8 +93,20 @@ Adafruit_ILI9341 tft(
 
 
 // =====================================================
-// SUPABASE
+// SUPABASE & HARDWARE CONFIGURATION
 // =====================================================
+
+#if __has_include("raksha_local_config.h")
+  #include "raksha_local_config.h"
+#elif __has_include("../raksha_local_config.h")
+  #include "../raksha_local_config.h"
+#else
+  #error "Configuration missing: Please copy firmware/raksha_local_config.example.h to firmware/raksha_local_config.h and configure RAKSHA_PARENT_PHONE."
+#endif
+
+#ifndef RAKSHA_PARENT_PHONE
+  #error "RAKSHA_PARENT_PHONE is not defined. Please define it in firmware/raksha_local_config.h"
+#endif
 
 const char* FUNCTION_URL =
   "https://uijvhpfycmhnedccytiq.supabase.co/functions/v1/raksha-attendance";
@@ -104,9 +116,9 @@ const char* FUNCTION_URL =
 const char* DEVICE_ID =
   "raksha-esp32s3-01";
 
-// Replace with the parent/test phone number including country code.
+// SMS recipient phone number loaded from local hardware configuration.
 const char* PARENT_PHONE =
-  "+917217857586";
+  RAKSHA_PARENT_PHONE;
 
 // Session-level duplicate protection.
 // Once a UID + event_type is successfully recorded, the same combination
