@@ -1,3 +1,12 @@
+<p align="center">
+  <img
+    src="raksha_kawach_app/assets/SGT%20University%20Raksha%20Kawach%20Safety%20Banner.png"
+    alt="SGT University Raksha Kawach Safety Banner"
+    width="900"
+    style="border-radius: 20px;"
+  />
+</p>
+
 # Raksha Kawach (रक्षा कवच)
 ## IoT-Powered University Transit Safety & Anti-Proxy Attendance Platform
 
