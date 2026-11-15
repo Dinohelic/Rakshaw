@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-primary-fixed-variant": "#265100", "tertiary-fixed": "#9cf6b3", "on-primary": "#ffffff", "surface-container": "#edeeeb", "on-secondary-fixed-variant": "#474746", "on-surface": "#191c1b", "tertiary-container": "#67bf80", "on-tertiary": "#ffffff", "on-secondary-fixed": "#1c1b1b", "secondary-fixed-dim": "#c8c6c5", "inverse-on-surface": "#f0f1ee", "background": "#f9faf7", "surface-tint": "#386a0b", "primary-fixed": "#b7f487", "surface-container-lowest": "#ffffff", "surface-container-low": "#f3f4f1", "primary-container": "#83bc57", "error": "#ba1a1a", "surface-dim": "#d9dad7", "on-error-container": "#93000a", "surface-container-high": "#e7e8e6", "on-primary-fixed": "#0b2000", "secondary": "#5f5e5e", "on-surface-variant": "#42493b", "primary": "#386a0b", "surface": "#f9faf7", "inverse-primary": "#9cd76e", "surface-bright": "#f9faf7", "on-tertiary-container": "#004b24", "tertiary": "#036d38", "on-primary-container": "#224a00", "tertiary-fixed-dim": "#80d998", "outline": "#727a69", "on-tertiary-fixed": "#00210d", "on-background": "#191c1b", "on-tertiary-fixed-variant": "#005228", "inverse-surface": "#2e312f", "surface-variant": "#e2e3e0", "on-secondary": "#ffffff", "on-error": "#ffffff", "primary-fixed-dim": "#9cd76e", "on-secondary-container": "#636262", "outline-variant": "#c2c9b6", "surface-container-highest": "#e2e3e0", "error-container": "#ffdad6", "secondary-fixed": "#e5e2e1", "secondary-container": "#e2dfde" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin-compact": "1rem", "space-2xl": "2.5rem", "space-md": "1rem", "margin": "1.25rem", "space-xxs": "0.25rem", "space-xs": "0.5rem", "gutter": "1rem", "space-xl": "2rem", "space-lg": "1.5rem", "gutter-sm": "0.75rem", "space-sm": "0.75rem" }, "fontFamily": { "label-md": ["Inter"], "body-lg": ["Inter"], "headline-md": ["Plus Jakarta Sans"], "label-lg": ["Inter"], "display": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-sm": ["Inter"], "headline-sm": ["Plus Jakarta Sans"], "body-sm": ["Inter"], "body-md": ["Inter"] }, "fontSize": { "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "400" }], "headline-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "label-lg": ["14px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600" }], "display": ["34px", { "lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "700" }], "headline-lg": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "600" }], "headline-sm": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }] } } } };</script><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface-container-lowest font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Raksha Kawach Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrBmDnXV4VEJUMmZ1OPZYqeMjRRmvZneVXBQfnt1_GBzMQ8n-DU8geQGRbM32_D5DqfCQCROCBhikzBqmVkyi0rRugkVJi1Cjnd2vMkYjhRLgTSQeNmoecS62qy7xHnKm0um1ex34mgS6RKKRjGGRKvA_drec6ZgwjT7UaJ813EO_N9OjPbSYoa-DtMf4Khvvl74sIHH7QVr5BNGsH8m63Jfe1SrB8hWCE8mfj7y49M"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Raksha Kawach</span><span class="font-label-sm text-label-sm text-on-surface-variant">Attendance</span></div></div><div class="flex items-center gap-space-xs"><button class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span></button><div class="w-11 h-11 flex items-center justify-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZJlgZ_yuy3vD9n5Se-5fSts9xAxWxWb7kg-bqkaS6BmCddhMFlGXgWM9MYZsc4V5mrSgbsSGQT6UeWyCalYNAKWeyFBMdheWE1lJ7xQ2Bmhv6BrUOz8QJsRx70eOgbxrFScqKCnRMlPZbDmnwl3rR2iXHER09g7VSKbb6qjuAuxvdgsOgOnUG4UFuZ4zKmdRe8QVemytCkE4txahNzzbfwukhdbZaWGfpS6n6-zk"/></div></div></div></header><main class="flex flex-col relative w-full pt-16 pb-24 bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full px-margin pb-space-xl">
+<!-- Screen Navigation Bar -->
+<div class="flex items-center justify-between py-space-sm">
+<div class="flex items-center gap-space-sm">
+<button aria-label="Go Back" class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:bg-surface-container transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight leading-snug">My Attendance</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Bus journey records &amp; anti-proxy verification</p>
+</div>
+</div>
+<div class="flex items-center gap-space-xxs">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors active:scale-95" title="Filter by calendar">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors active:scale-95" title="Export audit summary">
+<span class="material-symbols-outlined text-[20px]">file_download</span>
+</button>
+</div>
+</div>
+<!-- Telemetry Overview Card -->
+<div class="mt-space-xs bg-surface-container-lowest rounded-2xl p-space-md shadow-sm">
+<div class="grid grid-cols-3 divide-x divide-surface-container-high text-center">
+<div class="px-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Total Scans</span>
+<span class="font-headline-md text-headline-md text-on-surface mt-1 block">48</span>
+</div>
+<div class="px-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Verified</span>
+<span class="font-headline-md text-headline-md text-primary mt-1 block">46</span>
+</div>
+<div class="px-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Flagged</span>
+<span class="font-headline-md text-headline-md text-error mt-1 block">2</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center gap-space-xs text-on-surface-variant bg-surface-container-low px-space-sm py-2 rounded-xl">
+<span class="material-symbols-outlined text-[16px] text-tertiary">verified_user</span>
+<span class="font-label-sm text-label-sm leading-tight text-on-surface-variant">Restrained verification — RFID tap matched with GPS beacon telemetry.</span>
+</div>
+</div>
+<!-- Segmented Date Filter Pills -->
+<div class="mt-space-md flex items-center gap-space-xs overflow-x-auto pb-1" id="filter-container">
+<button class="filter-tab px-space-md py-2 rounded-full font-label-md text-label-md transition-all active:scale-95 whitespace-nowrap bg-surface-container text-on-surface hover:bg-surface-container-high" data-filter="today">
+      Today
+    </button>
+<button class="filter-tab px-space-md py-2 rounded-full font-label-md text-label-md transition-all active:scale-95 whitespace-nowrap bg-inverse-surface text-inverse-on-surface shadow-sm" data-filter="week">
+      This Week
+    </button>
+<button class="filter-tab px-space-md py-2 rounded-full font-label-md text-label-md transition-all active:scale-95 whitespace-nowrap bg-surface-container text-on-surface hover:bg-surface-container-high flex items-center gap-1" data-filter="calendar">
+<span class="material-symbols-outlined text-[16px]">edit_calendar</span>
+<span>Select Date</span>
+</button>
+<button class="filter-tab px-space-md py-2 rounded-full font-label-md text-label-md transition-all active:scale-95 whitespace-nowrap bg-surface-container text-on-surface hover:bg-surface-container-high" data-filter="all">
+      All Dates
+    </button>
+<button class="filter-tab px-space-md py-2 rounded-full font-label-md text-label-md transition-all active:scale-95 whitespace-nowrap bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center gap-1" data-filter="empty-demo" id="toggle-empty-view">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span>Simulate Empty</span>
+</button>
+</div>
+<!-- Attendance Timeline Container -->
+<div class="mt-space-md flex flex-col gap-space-sm" id="attendance-list">
+<!-- Item 1: Morning Boarding (Fully Verified) -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm hover:shadow-md transition-all duration-200">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed/30 flex items-center justify-center text-primary shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">directions_bus</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-sm text-headline-sm text-on-surface">Morning Boarding</span>
+<span class="font-label-sm text-label-sm bg-inverse-surface text-inverse-on-surface px-1.5 py-0.5 rounded font-mono">KA-04-E-2104</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-body-sm text-body-sm">Today, 08:14:22 AM IST</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+<span class="font-label-sm text-label-sm">Device: Terminal-B4 (Front Gate)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between border-t border-surface-container-high/60">
+<div class="flex items-center gap-1.5 bg-primary-container/20 text-on-primary-container px-2.5 py-1 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span class="font-label-sm text-label-sm">Phone Verified</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">satellite_alt</span> 12m BLE Radius
+        </span>
+</div>
+</div>
+<!-- Item 2: Evening Deboarding (Phone Not Nearby) -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm hover:shadow-md transition-all duration-200">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-xl bg-error-container/40 flex items-center justify-center text-error shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]">transfer_within_a_station</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-sm text-headline-sm text-on-surface">Evening Deboarding</span>
+<span class="font-label-sm text-label-sm bg-inverse-surface text-inverse-on-surface px-1.5 py-0.5 rounded font-mono">KA-04-E-2104</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-body-sm text-body-sm">Yesterday, 05:42:10 PM IST</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+<span class="font-label-sm text-label-sm">Device: Terminal-B4 (South Campus)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between border-t border-surface-container-high/60">
+<div class="flex items-center gap-1.5 bg-error-container text-on-error-container px-2.5 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]">cell_tower</span>
+<span class="font-label-sm text-label-sm">Phone Not Nearby</span>
+</div>
+<span class="font-label-sm text-label-sm text-error flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">report_problem</span> Flagged Proxy Tap
+        </span>
+</div>
+</div>
+<!-- Item 3: Morning Boarding (Location Unavailable) -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm hover:shadow-md transition-all duration-200">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary-container shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">directions_bus</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-sm text-headline-sm text-on-surface">Morning Boarding</span>
+<span class="font-label-sm text-label-sm bg-inverse-surface text-inverse-on-surface px-1.5 py-0.5 rounded font-mono">KA-01-A-9921</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-body-sm text-body-sm">24 Oct, 08:20:15 AM IST</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+<span class="font-label-sm text-label-sm">Device: Terminal-C1 (North Extension)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between border-t border-surface-container-high/60">
+<div class="flex items-center gap-1.5 bg-surface-container-high text-on-surface-variant px-2.5 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]">location_disabled</span>
+<span class="font-label-sm text-label-sm">Location Unavailable</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tap Confirmed</span>
+</div>
+</div>
+<!-- Item 4: Evening Boarding (Verification Uncertain) -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm hover:shadow-md transition-all duration-200">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-xl bg-tertiary-fixed/40 flex items-center justify-center text-on-tertiary-fixed-variant shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">directions_bus</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-sm text-headline-sm text-on-surface">Evening Boarding</span>
+<span class="font-label-sm text-label-sm bg-inverse-surface text-inverse-on-surface px-1.5 py-0.5 rounded font-mono">KA-04-E-2104</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-body-sm text-body-sm">23 Oct, 05:35:00 PM IST</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+<span class="font-label-sm text-label-sm">Device: Terminal-B4 (Depot Gate)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between border-t border-surface-container-high/60">
+<div class="flex items-center gap-1.5 bg-surface-variant text-on-surface-variant px-2.5 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]">sync_problem</span>
+<span class="font-label-sm text-label-sm">Verification Uncertain</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Weak GNSS Signal</span>
+</div>
+</div>
+<!-- Item 5: Morning Boarding (Pending Verification) -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm hover:shadow-md transition-all duration-200">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-on-surface-variant shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]">hourglass_empty</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-sm text-headline-sm text-on-surface">Morning Boarding</span>
+<span class="font-label-sm text-label-sm bg-inverse-surface text-inverse-on-surface px-1.5 py-0.5 rounded font-mono">KA-04-E-2104</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-body-sm text-body-sm">22 Oct, 08:18:40 AM IST</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+<span class="font-label-sm text-label-sm">Device: Terminal-B4 (Main Gate)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between border-t border-surface-container-high/60">
+<div class="flex items-center gap-1.5 bg-surface-container-low text-on-surface-variant px-2.5 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]">pending</span>
+<span class="font-label-sm text-label-sm">Pending Verification</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Awaiting Batch Sync</span>
+</div>
+</div>
+</div>
+<!-- Empty State Demo Component (Interactive Toggle) -->
+<div class="hidden mt-space-md bg-surface-container-lowest rounded-2xl p-space-xl flex flex-col items-center justify-center text-center shadow-sm" id="empty-state-view">
+<div class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-primary-container mb-space-sm">
+<svg class="w-12 h-12 text-primary" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<rect height="26" rx="6" stroke="currentColor" stroke-width="2.5" width="28" x="10" y="10"></rect>
+<path d="M14 18H34" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+<circle cx="16" cy="30" fill="currentColor" r="2.5"></circle>
+<circle cx="32" cy="30" fill="currentColor" r="2.5"></circle>
+<path d="M14 36V40" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+<path d="M34 36V40" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+<path d="M22 24H26" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold tracking-tight">No Attendance Records Yet</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs max-w-xs leading-relaxed">
+      Your bus journeys will appear here once recorded via your RFID university transport card.
+    </p>
+<button class="mt-space-md inline-flex items-center gap-space-xs bg-primary text-on-primary px-space-md py-2.5 rounded-xl font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-all active:scale-95 shadow-sm" id="reset-filter-btn">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+<span>Restore Active View</span>
+</button>
+</div>
+</div>
+<script>
+  (function() {
+    const tabs = document.querySelectorAll('.filter-tab');
+    const listContainer = document.getElementById('attendance-list');
+    const emptyView = document.getElementById('empty-state-view');
+    const resetBtn = document.getElementById('reset-filter-btn');
+
+    function setActiveTab(selectedTab) {
+      tabs.forEach(tab => {
+        tab.classList.remove('bg-inverse-surface', 'text-inverse-on-surface', 'shadow-sm');
+        tab.classList.add('bg-surface-container', 'text-on-surface');
+      });
+      selectedTab.classList.remove('bg-surface-container', 'text-on-surface');
+      selectedTab.classList.add('bg-inverse-surface', 'text-inverse-on-surface', 'shadow-sm');
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const filter = tab.getAttribute('data-filter');
+        setActiveTab(tab);
+
+        if (filter === 'empty-demo') {
+          listContainer.classList.add('hidden');
+          emptyView.classList.remove('hidden');
+        } else {
+          listContainer.classList.remove('hidden');
+          emptyView.classList.add('hidden');
+        }
+      });
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        const weekTab = document.querySelector('[data-filter="week"]');
+        if (weekTab) {
+          weekTab.click();
+        }
+      });
+    }
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(0,0,0,0.04)]" data-active-classes="text-on-primary-container bg-primary-container/20"><div class="flex justify-around items-center h-16 px-margin-compact"><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-space-xs py-1 rounded-full text-on-surface-variant transition-all" data-path="home" href="#"><span class="material-symbols-outlined text-[24px]">home</span><span class="font-label-sm text-label-sm mt-0.5">Home</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-space-xs py-1 rounded-full transition-all text-on-primary-container bg-primary-container/20" data-path="attendance" href="#"><span class="material-symbols-outlined text-[24px]">fact_check</span><span class="font-label-sm text-label-sm mt-0.5">Attendance</span></a><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-space-xs py-1 rounded-full text-on-surface-variant transition-all" data-path="location" href="#"><span class="material-symbols-outlined text-[24px]">near_me</span><span class="font-label-sm text-label-sm mt-0.5">Location</span></a><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-space-xs py-1 rounded-full text-on-surface-variant transition-all" data-path="profile" href="#"><span class="material-symbols-outlined text-[24px]">person</span><span class="font-label-sm text-label-sm mt-0.5">Profile</span></a></div></nav></body></html>

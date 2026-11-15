@@ -7,6 +7,8 @@ config/dev.json
 config/*.local.json
 raksha_kwacch_admin/config/dev.json
 raksha_kwacch_admin/config/*.local.json
+raksha_kawach_app/config/dev.json
+raksha_kawach_app/config/*.local.json
 *.local.json
 firmware/raksha_local_config.h
 **/raksha_local_config.h
