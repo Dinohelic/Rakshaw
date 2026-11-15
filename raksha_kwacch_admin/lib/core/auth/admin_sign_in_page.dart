@@ -86,19 +86,11 @@ class _AdminSignInPageState extends State<AdminSignInPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.brandLightRed,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.brandBorderRed),
-                ),
-                child: const Icon(
-                  Icons.shield,
-                  color: AppColors.brandRed,
-                  size: 28,
-                ),
+              Image.asset(
+                'assets/Logo.png',
+                width: 52,
+                height: 52,
+                fit: BoxFit.contain,
               ),
               const SizedBox(height: 20),
               const CircularProgressIndicator(color: AppColors.brandRed),
@@ -132,33 +124,14 @@ class _AdminSignInPageState extends State<AdminSignInPage> {
                 Center(
                   child: Column(
                     children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: AppColors.brandLightRed,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.brandBorderRed),
-                        ),
-                        child: const Icon(
-                          Icons.shield,
-                          color: AppColors.brandRed,
-                          size: 30,
-                        ),
+                      Image.asset(
+                        'assets/SGT University Raksha Kawach Safety Bannerr.png',
+                        height: 72,
+                        fit: BoxFit.contain,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
                       const Text(
-                        'Raksha Kawach',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'SGT University Transport Safety and Management System',
+                        'Transport Safety and Management System',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,

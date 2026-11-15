@@ -88,19 +88,11 @@ class AdminSidebar extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.brandLightRed,
-                      border: Border.all(color: AppColors.brandBorderRed),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.shield,
-                      color: AppColors.brandRed,
-                      size: 20,
-                    ),
+                  Image.asset(
+                    'assets/Logo.png',
+                    width: 34,
+                    height: 34,
+                    fit: BoxFit.contain,
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
